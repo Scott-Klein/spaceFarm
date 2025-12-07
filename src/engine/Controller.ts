@@ -5,6 +5,8 @@ export interface ControlInput {
   movement: Vector3;
   rotation?: Vector3;
   action?: string;
+  thrust?: Vector3; // Thrust in local space (x=strafe, y=vertical, z=forward/back)
+  angularInput?: Vector3; // Angular input (x=pitch, y=yaw, z=roll)
 }
 
 export abstract class Controller {

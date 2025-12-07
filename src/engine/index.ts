@@ -4,6 +4,7 @@ export { GameEngine } from './GameEngine';
 export { InputManager } from './InputManager';
 export { CameraController } from './CameraController';
 export { Controller } from './Controller';
+export { FlightSystem } from './FlightSystem';
 export { HumanController } from './controllers/HumanController';
 export { AIController } from './controllers/AIController';
 export { MultiplayerController } from './controllers/MultiplayerController';
