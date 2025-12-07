@@ -162,6 +162,10 @@ export class FlightSystem {
     return this.orientation.clone();
   }
 
+  getMaxSpeed(): number {
+    return this.maxSpeed;
+  }
+
   // Setters for direct manipulation
   setVelocity(velocity: Vector3): void {
     this.velocity = velocity.clone();

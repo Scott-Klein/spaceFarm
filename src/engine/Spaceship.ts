@@ -11,10 +11,10 @@ export class Spaceship extends GameObject {
     super(id);
     this.color = color;
     this.flightSystem = new FlightSystem({
-      maxThrust: 0.00002, // Lower thrust - build momentum slowly
-      maxSpeed: 0.01, // Higher max speed
+      maxThrust: 0.014, // Lower thrust - build momentum slowly
+      maxSpeed: 0.1, // Higher max speed
       pitchSpeed: 0.0007, // Slower pitch - takes time to rotate
-      rollSpeed: 0.002, // Slower roll - gradual barrel rolls
+      rollSpeed: 0.0007, // Slower roll - gradual barrel rolls
       yawSpeed: 0.001, // Slower yaw - heavy turning
       drag: 0.999, // Almost no drag! Pure inertia
       mass: 1.0, // Low mass
@@ -103,5 +103,23 @@ export class Spaceship extends GameObject {
 
   getThrustPercent(): number {
     return this.flightSystem.getThrustPercent();
+  }
+
+  getMaxSpeed(): number {
+    return this.flightSystem.getMaxSpeed();
+  }
+
+  /**
+   * Get orientation angles in degrees
+   * @returns { pitch, roll, yaw } in degrees
+   */
+  getOrientationAngles(): { pitch: number; roll: number; yaw: number } {
+    // Convert Babylon rotation vector (in radians) to degrees
+    const toDegrees = (rad: number) => (rad * 180) / Math.PI;
+    return {
+      pitch: toDegrees(this.rotation.x),
+      roll: toDegrees(this.rotation.z),
+      yaw: toDegrees(this.rotation.y),
+    };
   }
 }

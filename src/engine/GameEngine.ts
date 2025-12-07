@@ -1,7 +1,23 @@
 import { Scene, HemisphericLight, Vector3, Color3 } from '@babylonjs/core';
 import { GameObject } from './GameObject';
-import { CameraController } from './CameraController';
+import { CameraController, type CameraMode } from './CameraController';
 import { InputManager } from './InputManager';
+import { Spaceship } from './Spaceship';
+
+// Type for the store update callback
+export type StateUpdateCallback = (state: {
+  speed: number;
+  maxSpeed: number;
+  throttle: number;
+  pitch: number;
+  roll: number;
+  yaw: number;
+}) => void;
+
+// Type for store command getter
+export type CommandGetter = () => {
+  cameraMode: CameraMode;
+};
 
 export class GameEngine {
   private scene: Scene;
@@ -10,6 +26,9 @@ export class GameEngine {
   private gameObjects: Map<string, GameObject> = new Map();
   private selectedObject: GameObject | null = null;
   private lastTime: number = performance.now();
+  private stateUpdateCallback: StateUpdateCallback | null = null;
+  private commandGetter: CommandGetter | null = null;
+  private lastCameraMode: CameraMode = 'free';
 
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.scene = scene;
@@ -40,6 +59,17 @@ export class GameEngine {
   }
 
   private update(deltaTime: number): void {
+    // Read commands from store (UI → Game)
+    if (this.commandGetter) {
+      const commands = this.commandGetter();
+
+      // Update camera mode if changed
+      if (commands.cameraMode !== this.lastCameraMode) {
+        this.cameraController.setMode(commands.cameraMode);
+        this.lastCameraMode = commands.cameraMode;
+      }
+    }
+
     // Update input
     this.inputManager.update();
 
@@ -50,6 +80,19 @@ export class GameEngine {
 
     // Update camera
     this.cameraController.update();
+
+    // Push state updates to store if callback is registered (Game → UI)
+    if (this.stateUpdateCallback && this.selectedObject instanceof Spaceship) {
+      const angles = this.selectedObject.getOrientationAngles();
+      this.stateUpdateCallback({
+        speed: this.selectedObject.getSpeed(),
+        maxSpeed: this.selectedObject.getMaxSpeed(),
+        throttle: this.selectedObject.getThrustPercent(),
+        pitch: angles.pitch,
+        roll: angles.roll,
+        yaw: angles.yaw,
+      });
+    }
   }
 
   addGameObject(gameObject: GameObject): void {
@@ -95,5 +138,21 @@ export class GameEngine {
 
   getScene(): Scene {
     return this.scene;
+  }
+
+  /**
+   * Register a callback to receive state updates every frame
+   * This is how the game engine pushes data to the UI store (Game → UI)
+   */
+  setStateUpdateCallback(callback: StateUpdateCallback): void {
+    this.stateUpdateCallback = callback;
+  }
+
+  /**
+   * Register a getter to read commands from the store
+   * This is how the UI sends commands to the game engine (UI → Game)
+   */
+  setCommandGetter(getter: CommandGetter): void {
+    this.commandGetter = getter;
   }
 }

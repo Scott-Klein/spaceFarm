@@ -12,12 +12,15 @@ export type KeyCommand =
   | 'pitchUp'
   | 'pitchDown'
   | 'yawLeft'
-  | 'yawRight';
+  | 'yawRight'
+  | 'toggleCamera';
 
 export class InputManager {
   private keysPressed = new Set<string>();
   private keyBindings: Map<string, KeyCommand> = new Map();
   private commandCallbacks: Map<KeyCommand, () => void> = new Map();
+  private keyJustPressed = new Set<string>();
+  private lastPressedKeys = new Set<string>();
 
   constructor(scene: Scene) {
     // LEFT-HAND ONLY flight control scheme
@@ -42,6 +45,9 @@ export class InputManager {
     this.keyBindings.set('q', 'rollRight'); // Roll right
     this.keyBindings.set('e', 'rollLeft'); // Roll left
 
+    // Camera toggle - C
+    this.keyBindings.set('c', 'toggleCamera');
+
     // Listen for keyboard events
     scene.onKeyboardObservable.add((kbInfo) => {
       const key = kbInfo.event.key.toLowerCase();
@@ -49,9 +55,15 @@ export class InputManager {
       if (kbInfo.type === 1) {
         // KEYDOWN
         this.keysPressed.add(key);
+
+        // Track newly pressed keys for single-press events
+        if (!this.lastPressedKeys.has(key)) {
+          this.keyJustPressed.add(key);
+        }
       } else if (kbInfo.type === 2) {
         // KEYUP
         this.keysPressed.delete(key);
+        this.lastPressedKeys.delete(key);
       }
     });
   }
@@ -59,6 +71,15 @@ export class InputManager {
   isCommandActive(command: KeyCommand): boolean {
     for (const [key, cmd] of this.keyBindings.entries()) {
       if (cmd === command && this.keysPressed.has(key)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  wasCommandJustPressed(command: KeyCommand): boolean {
+    for (const [key, cmd] of this.keyBindings.entries()) {
+      if (cmd === command && this.keyJustPressed.has(key)) {
         return true;
       }
     }
@@ -74,11 +95,15 @@ export class InputManager {
   }
 
   update(): void {
-    // Execute callbacks for active commands
+    // Execute callbacks for active commands (held keys)
     for (const [command, callback] of this.commandCallbacks.entries()) {
       if (this.isCommandActive(command)) {
         callback();
       }
     }
+
+    // Update key press tracking
+    this.lastPressedKeys = new Set(this.keysPressed);
+    this.keyJustPressed.clear();
   }
 }

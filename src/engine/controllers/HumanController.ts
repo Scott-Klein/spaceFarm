@@ -6,14 +6,14 @@ import { InputManager } from '../InputManager';
 export class HumanController extends Controller {
   private inputManager: InputManager;
   private currentThrottle: number = 0;
-  private throttleStep: number = 0.1;
+  private throttleChangeRate: number = 0.00005; // Throttle changes per frame (at 60fps = 0.6 per second)
 
   constructor(inputManager: InputManager) {
     super();
     this.inputManager = inputManager;
   }
 
-  update(_deltaTime: number): ControlInput | null {
+  update(deltaTime: number): ControlInput | null {
     if (!this.controlledObject) return null;
 
     const flightInput: FlightInput = {
@@ -24,12 +24,15 @@ export class HumanController extends Controller {
       brake: false,
     };
 
-    // Throttle control - W/S increase/decrease thrust
+    // Normalize deltaTime (assuming 60fps baseline = 16.67ms)
+    const dt = deltaTime / 16.67;
+
+    // Throttle control - Shift/Ctrl increase/decrease thrust gradually
     if (this.inputManager.isCommandActive('forward')) {
-      this.currentThrottle = Math.min(1, this.currentThrottle + this.throttleStep);
+      this.currentThrottle = Math.min(1, this.currentThrottle + this.throttleChangeRate * dt);
     }
     if (this.inputManager.isCommandActive('backward')) {
-      this.currentThrottle = Math.max(0, this.currentThrottle - this.throttleStep);
+      this.currentThrottle = Math.max(0, this.currentThrottle - this.throttleChangeRate * dt);
     }
 
     // Pitch control (nose up/down) - Arrow Up/Down
