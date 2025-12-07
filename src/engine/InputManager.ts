@@ -39,8 +39,8 @@ export class InputManager {
     this.keyBindings.set('d', 'right'); // Alternative
 
     // Roll (barrel roll) - Q/E (pinky/index finger)
-    this.keyBindings.set('q', 'rollLeft'); // Roll left
-    this.keyBindings.set('e', 'rollRight'); // Roll right
+    this.keyBindings.set('q', 'rollRight'); // Roll right
+    this.keyBindings.set('e', 'rollLeft'); // Roll left
 
     // Listen for keyboard events
     scene.onKeyboardObservable.add((kbInfo) => {

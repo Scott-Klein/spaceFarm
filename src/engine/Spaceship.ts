@@ -12,13 +12,13 @@ export class Spaceship extends GameObject {
     this.color = color;
     this.flightSystem = new FlightSystem({
       maxThrust: 0.002, // Lower thrust - build momentum slowly
-      maxSpeed: 0.5, // Higher max speed
-      pitchSpeed: 0.05, // Very fast turning
-      rollSpeed: 0.06, // Very fast rolling
-      yawSpeed: 0.04, // Very fast yaw
+      maxSpeed: 0.05, // Higher max speed
+      pitchSpeed: 0.008, // Slower pitch - takes time to rotate
+      rollSpeed: 0.01, // Slower roll - gradual barrel rolls
+      yawSpeed: 0.006, // Slower yaw - heavy turning
       drag: 0.999, // Almost no drag! Pure inertia
       mass: 1.0, // Low mass
-      rotationalInertia: 2.0, // Very low - turn on a dime
+      rotationalInertia: 15.0, // Much higher - heavy, weighty rotations
       lateralDrag: 0.999, // Also almost no lateral drag - pure momentum
     });
   }

@@ -29,7 +29,7 @@ export class FlightSystem {
 
   // Drag and stability
   private drag: number = 0.98;
-  private angularDrag: number = 0.85;
+  private angularDrag: number = 0.97; // Higher = more rotational momentum (was 0.85)
   private lateralDrag: number = 0.92; // Drag for sideways movement (creates drift feel)
 
   constructor(
