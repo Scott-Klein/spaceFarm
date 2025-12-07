@@ -1,6 +1,18 @@
 import { Scene } from '@babylonjs/core';
 
-export type KeyCommand = 'forward' | 'backward' | 'left' | 'right' | 'up' | 'down';
+export type KeyCommand =
+  | 'forward'
+  | 'backward'
+  | 'left'
+  | 'right'
+  | 'up'
+  | 'down'
+  | 'rollLeft'
+  | 'rollRight'
+  | 'pitchUp'
+  | 'pitchDown'
+  | 'yawLeft'
+  | 'yawRight';
 
 export class InputManager {
   private keysPressed = new Set<string>();
@@ -8,13 +20,27 @@ export class InputManager {
   private commandCallbacks: Map<KeyCommand, () => void> = new Map();
 
   constructor(scene: Scene) {
-    // Default WASD + Space/Shift bindings
-    this.keyBindings.set('w', 'forward');
-    this.keyBindings.set('s', 'backward');
-    this.keyBindings.set('a', 'left');
-    this.keyBindings.set('d', 'right');
-    this.keyBindings.set(' ', 'up');
-    this.keyBindings.set('shift', 'down');
+    // LEFT-HAND ONLY flight control scheme
+
+    // Throttle control - Shift/Ctrl (pinky finger)
+    this.keyBindings.set('shift', 'forward'); // Increase thrust
+    this.keyBindings.set('control', 'backward'); // Decrease thrust
+
+    // Pitch (nose up/down) - W/S (middle/ring finger)
+    this.keyBindings.set('w', 'pitchUp'); // Pitch up
+    this.keyBindings.set('w', 'up'); // Alternative
+    this.keyBindings.set('s', 'pitchDown'); // Pitch down
+    this.keyBindings.set('s', 'down'); // Alternative
+
+    // Yaw (turn left/right) - A/D (ring/index finger)
+    this.keyBindings.set('a', 'yawLeft'); // Yaw left
+    this.keyBindings.set('a', 'left'); // Alternative
+    this.keyBindings.set('d', 'yawRight'); // Yaw right
+    this.keyBindings.set('d', 'right'); // Alternative
+
+    // Roll (barrel roll) - Q/E (pinky/index finger)
+    this.keyBindings.set('q', 'rollLeft'); // Roll left
+    this.keyBindings.set('e', 'rollRight'); // Roll right
 
     // Listen for keyboard events
     scene.onKeyboardObservable.add((kbInfo) => {

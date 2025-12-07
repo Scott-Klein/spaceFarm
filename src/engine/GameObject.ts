@@ -1,5 +1,6 @@
 import { Mesh, Scene, Vector3 } from '@babylonjs/core';
 import type { Controller } from './Controller';
+import type { FlightInput } from './FlightSystem';
 
 export abstract class GameObject {
   protected mesh: Mesh | null = null;
@@ -34,11 +35,14 @@ export abstract class GameObject {
 
   // Override this method in subclasses to handle control input differently
   protected handleControlInput(input: {
-    movement: Vector3;
+    movement?: Vector3;
     rotation?: Vector3;
+    flight?: FlightInput;
     action?: string;
   }): void {
-    this.position.addInPlace(input.movement);
+    if (input.movement) {
+      this.position.addInPlace(input.movement);
+    }
     if (input.rotation) {
       this.rotation.addInPlace(input.rotation);
     }

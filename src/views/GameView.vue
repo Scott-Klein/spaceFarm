@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Color3, Vector3 } from '@babylonjs/core';
+import { Color3, Vector3, CreateSphere, StandardMaterial } from '@babylonjs/core';
 import { useBabylonScene } from '@/composables/useBabylonScene';
 import { GameEngine, Spaceship, HumanController, AIController } from '@/engine';
 
@@ -19,10 +19,40 @@ useBabylonScene({
     const gameEngine = new GameEngine(scene, canvas);
     const inputManager = gameEngine.getInputManager();
 
+    // Create stationary reference objects (asteroids/markers) to gauge velocity
+    const createReferenceObject = (position: Vector3, size: number, color: Color3) => {
+      const sphere = CreateSphere(`ref-${position.x}-${position.z}`, { diameter: size }, scene);
+      sphere.position = position;
+      const material = new StandardMaterial(`refMat-${position.x}-${position.z}`, scene);
+      material.diffuseColor = color;
+      material.emissiveColor = color.scale(0.3); // Slight glow
+      sphere.material = material;
+      return sphere;
+    };
+
+    // Create a grid of reference objects
+    const gridSize = 50;
+    const spacing = 20;
+    for (let x = -gridSize; x <= gridSize; x += spacing) {
+      for (let z = -gridSize; z <= gridSize; z += spacing) {
+        if (x === 0 && z === 0) continue; // Skip origin where player starts
+        const position = new Vector3(x, 0, z);
+        const size = 2 + Math.random() * 2;
+        const color = new Color3(0.3 + Math.random() * 0.3, 0.3 + Math.random() * 0.3, 0.5);
+        createReferenceObject(position, size, color);
+      }
+    }
+
+    // Add some larger landmark objects
+    createReferenceObject(new Vector3(30, 0, 30), 8, new Color3(1, 0.5, 0));
+    createReferenceObject(new Vector3(-40, 0, 40), 10, new Color3(0.5, 0, 1));
+    createReferenceObject(new Vector3(50, 10, -30), 6, new Color3(0, 1, 0.5));
+    createReferenceObject(new Vector3(-30, -10, -50), 7, new Color3(1, 0, 0.5));
+
     // Create player spaceship with human controller
     const playerShip = new Spaceship('player', new Color3(0.2, 0.6, 1));
     playerShip.position = new Vector3(0, 0, 0);
-    const humanController = new HumanController(inputManager, 0.05);
+    const humanController = new HumanController(inputManager);
     playerShip.possess(humanController);
     gameEngine.addGameObject(playerShip);
 
