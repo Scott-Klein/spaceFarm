@@ -5,6 +5,11 @@ import { Vector3, Quaternion } from '@babylonjs/core';
  * Uses quaternions to avoid gimbal lock and provides proper 6DOF (degrees of freedom) flight
  */
 export class FlightSystem {
+  // Physics constants
+  private static readonly TARGET_FPS = 60;
+  private static readonly FRAME_TIME_MS = 1000 / FlightSystem.TARGET_FPS;
+  private static readonly MIN_ROTATION_THRESHOLD = 0.0001;
+
   // Position and orientation
   public position: Vector3;
   public orientation: Quaternion;
@@ -82,8 +87,9 @@ export class FlightSystem {
     // Apply linear drag
     this.velocity.scaleInPlace(this.linearDrag);
 
-    // Update position
-    const scaledVelocity = this.velocity.scale(deltaTime / 16); // Normalize to ~60fps
+    // Update position - normalize delta time to target frame rate for consistent physics
+    const timeScale = deltaTime / FlightSystem.FRAME_TIME_MS;
+    const scaledVelocity = this.velocity.scale(timeScale);
     this.position.addInPlace(scaledVelocity);
 
     // Apply angular drag
@@ -93,11 +99,11 @@ export class FlightSystem {
     if (!this.angularVelocity.equals(Vector3.Zero())) {
       // Create a quaternion from angular velocity
       // Scale angular velocity by deltaTime
-      const scaledAngularVel = this.angularVelocity.scale(deltaTime / 16);
+      const scaledAngularVel = this.angularVelocity.scale(timeScale);
       
       // Convert to quaternion (axis-angle representation)
       const angle = scaledAngularVel.length();
-      if (angle > 0.0001) {
+      if (angle > FlightSystem.MIN_ROTATION_THRESHOLD) {
         const axis = scaledAngularVel.normalize();
         const deltaRotation = Quaternion.RotationAxis(axis, angle);
         

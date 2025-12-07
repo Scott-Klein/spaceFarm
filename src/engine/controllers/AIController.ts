@@ -6,6 +6,9 @@ import { GameObject } from '../GameObject';
 export type AIBehavior = 'idle' | 'patrol' | 'follow' | 'flee';
 
 export class AIController extends Controller {
+  // Multiplier to convert moveSpeed to thrust values for the flight system
+  private static readonly THRUST_MULTIPLIER = 50;
+
   private behavior: AIBehavior;
   private target: GameObject | null = null;
   private patrolPoints: Vector3[] = [];
@@ -57,9 +60,9 @@ export class AIController extends Controller {
     if (this.idleTime > this.idleMaxTime) {
       this.idleTime = 0;
       const randomThrust = new Vector3(
-        (Math.random() - 0.5) * this.moveSpeed * 50,
+        (Math.random() - 0.5) * this.moveSpeed * AIController.THRUST_MULTIPLIER,
         0,
-        (Math.random() - 0.5) * this.moveSpeed * 50,
+        (Math.random() - 0.5) * this.moveSpeed * AIController.THRUST_MULTIPLIER,
       );
       return { movement: Vector3.Zero(), thrust: randomThrust };
     }
@@ -86,7 +89,7 @@ export class AIController extends Controller {
       this.currentPatrolIndex = (this.currentPatrolIndex + 1) % this.patrolPoints.length;
     }
 
-    const thrust = direction.normalize().scale(this.moveSpeed * 50);
+    const thrust = direction.normalize().scale(this.moveSpeed * AIController.THRUST_MULTIPLIER);
     return { movement: Vector3.Zero(), thrust };
   }
 
@@ -101,7 +104,7 @@ export class AIController extends Controller {
       return null;
     }
 
-    const thrust = direction.normalize().scale(this.moveSpeed * 50);
+    const thrust = direction.normalize().scale(this.moveSpeed * AIController.THRUST_MULTIPLIER);
     return { movement: Vector3.Zero(), thrust };
   }
 
@@ -116,7 +119,7 @@ export class AIController extends Controller {
       return null;
     }
 
-    const thrust = direction.normalize().scale(this.moveSpeed * 75);
+    const thrust = direction.normalize().scale(this.moveSpeed * AIController.THRUST_MULTIPLIER * 1.5);
     return { movement: Vector3.Zero(), thrust };
   }
 

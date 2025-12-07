@@ -67,15 +67,17 @@ export class Spaceship extends GameObject {
   }): void {
     // Handle thrust input (relative to ship orientation)
     if (input.thrust && !input.thrust.equals(Vector3.Zero())) {
-      // Apply thrust in local space directions
-      if (input.thrust.z !== 0) {
-        this.flightSystem.applyThrust(new Vector3(0, 0, input.thrust.z), Math.abs(input.thrust.z));
-      }
-      if (input.thrust.x !== 0) {
-        this.flightSystem.applyThrust(new Vector3(input.thrust.x, 0, 0), Math.abs(input.thrust.x));
-      }
-      if (input.thrust.y !== 0) {
-        this.flightSystem.applyThrust(new Vector3(0, input.thrust.y, 0), Math.abs(input.thrust.y));
+      // Apply thrust in local space directions for each axis
+      const axes = [
+        { direction: new Vector3(0, 0, input.thrust.z), component: input.thrust.z }, // Forward/back
+        { direction: new Vector3(input.thrust.x, 0, 0), component: input.thrust.x }, // Strafe
+        { direction: new Vector3(0, input.thrust.y, 0), component: input.thrust.y }, // Up/down
+      ];
+
+      for (const axis of axes) {
+        if (axis.component !== 0) {
+          this.flightSystem.applyThrust(axis.direction, Math.abs(axis.component));
+        }
       }
     }
 
