@@ -21,33 +21,54 @@ useBabylonScene({
 
     // Create stationary reference objects (asteroids/markers) to gauge velocity
     const createReferenceObject = (position: Vector3, size: number, color: Color3) => {
-      const sphere = CreateSphere(`ref-${position.x}-${position.z}`, { diameter: size }, scene);
+      const sphere = CreateSphere(
+        `ref-${Math.random().toString(36).substr(2, 9)}`,
+        { diameter: size },
+        scene,
+      );
       sphere.position = position;
-      const material = new StandardMaterial(`refMat-${position.x}-${position.z}`, scene);
+      const material = new StandardMaterial(
+        `refMat-${Math.random().toString(36).substr(2, 9)}`,
+        scene,
+      );
       material.diffuseColor = color;
       material.emissiveColor = color.scale(0.3); // Slight glow
       sphere.material = material;
       return sphere;
     };
 
-    // Create a grid of reference objects
-    const gridSize = 50;
-    const spacing = 20;
-    for (let x = -gridSize; x <= gridSize; x += spacing) {
-      for (let z = -gridSize; z <= gridSize; z += spacing) {
-        if (x === 0 && z === 0) continue; // Skip origin where player starts
-        const position = new Vector3(x, 0, z);
-        const size = 2 + Math.random() * 2;
-        const color = new Color3(0.3 + Math.random() * 0.3, 0.3 + Math.random() * 0.3, 0.5);
-        createReferenceObject(position, size, color);
-      }
+    // Create randomly placed asteroids in 3D space
+    const numAsteroids = 80;
+    const spaceRadius = 150; // Spread out in a 300x300x300 cube
+
+    for (let i = 0; i < numAsteroids; i++) {
+      // Random position in 3D space
+      const x = (Math.random() - 0.5) * spaceRadius * 2;
+      const y = (Math.random() - 0.5) * spaceRadius * 2;
+      const z = (Math.random() - 0.5) * spaceRadius * 2;
+
+      // Skip if too close to origin (where player starts)
+      if (Math.sqrt(x * x + y * y + z * z) < 20) continue;
+
+      const position = new Vector3(x, y, z);
+      const size = 3 + Math.random() * 8; // Larger asteroids (3-11 units)
+
+      // Random colors with variety
+      const color = new Color3(
+        0.2 + Math.random() * 0.6,
+        0.2 + Math.random() * 0.6,
+        0.3 + Math.random() * 0.5,
+      );
+
+      createReferenceObject(position, size, color);
     }
 
-    // Add some larger landmark objects
-    createReferenceObject(new Vector3(30, 0, 30), 8, new Color3(1, 0.5, 0));
-    createReferenceObject(new Vector3(-40, 0, 40), 10, new Color3(0.5, 0, 1));
-    createReferenceObject(new Vector3(50, 10, -30), 6, new Color3(0, 1, 0.5));
-    createReferenceObject(new Vector3(-30, -10, -50), 7, new Color3(1, 0, 0.5));
+    // Add some very large landmark asteroids
+    createReferenceObject(new Vector3(80, 30, 60), 20, new Color3(1, 0.5, 0));
+    createReferenceObject(new Vector3(-90, -40, 70), 25, new Color3(0.5, 0, 1));
+    createReferenceObject(new Vector3(100, 50, -80), 18, new Color3(0, 1, 0.5));
+    createReferenceObject(new Vector3(-70, -30, -90), 22, new Color3(1, 0, 0.5));
+    createReferenceObject(new Vector3(0, 100, 0), 30, new Color3(1, 1, 0.3)); // Big one above
 
     // Create player spaceship with human controller
     const playerShip = new Spaceship('player', new Color3(0.2, 0.6, 1));
