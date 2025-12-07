@@ -1,7 +1,11 @@
 <template>
-  <div class="game-container select-none">
+  <div class="relative h-full w-full select-none overflow-hidden">
     <!-- 3D Canvas Background -->
-    <canvas ref="canvasRef" touch-action="none" class="game-canvas"></canvas>
+    <canvas
+      ref="canvasRef"
+      touch-action="none"
+      class="absolute left-0 top-0 h-full w-full"
+    ></canvas>
 
     <!-- UI Overlay Components - All read from Pinia store -->
     <ControlsDisplay />
@@ -67,21 +71,3 @@ useBabylonScene({
   },
 });
 </script>
-
-<style scoped>
-.game-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.game-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-}
-</style>
