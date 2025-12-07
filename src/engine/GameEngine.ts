@@ -1,6 +1,6 @@
 import { Scene, HemisphericLight, Vector3, Color3 } from '@babylonjs/core';
 import { GameObject } from './GameObject';
-import { CameraController, type CameraMode } from './CameraController';
+import { CameraController } from './CameraController';
 import { InputManager } from './InputManager';
 import { Spaceship } from './Spaceship';
 
@@ -14,11 +14,6 @@ export type StateUpdateCallback = (state: {
   yaw: number;
 }) => void;
 
-// Type for store command getter
-export type CommandGetter = () => {
-  cameraMode: CameraMode;
-};
-
 export class GameEngine {
   private scene: Scene;
   private cameraController: CameraController;
@@ -27,8 +22,6 @@ export class GameEngine {
   private selectedObject: GameObject | null = null;
   private lastTime: number = performance.now();
   private stateUpdateCallback: StateUpdateCallback | null = null;
-  private commandGetter: CommandGetter | null = null;
-  private lastCameraMode: CameraMode = 'free';
 
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.scene = scene;
@@ -59,17 +52,6 @@ export class GameEngine {
   }
 
   private update(deltaTime: number): void {
-    // Read commands from store (UI → Game)
-    if (this.commandGetter) {
-      const commands = this.commandGetter();
-
-      // Update camera mode if changed
-      if (commands.cameraMode !== this.lastCameraMode) {
-        this.cameraController.setMode(commands.cameraMode);
-        this.lastCameraMode = commands.cameraMode;
-      }
-    }
-
     // Update input
     this.inputManager.update();
 
@@ -146,13 +128,5 @@ export class GameEngine {
    */
   setStateUpdateCallback(callback: StateUpdateCallback): void {
     this.stateUpdateCallback = callback;
-  }
-
-  /**
-   * Register a getter to read commands from the store
-   * This is how the UI sends commands to the game engine (UI → Game)
-   */
-  setCommandGetter(getter: CommandGetter): void {
-    this.commandGetter = getter;
   }
 }

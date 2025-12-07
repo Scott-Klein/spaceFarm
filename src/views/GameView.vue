@@ -48,11 +48,6 @@ useBabylonScene({
       gameStore.updatePlayerState(state);
     });
 
-    // UI → Game: Read commands from store every frame
-    gameEngine.setCommandGetter(() => ({
-      cameraMode: gameStore.cameraMode,
-    }));
-
     // Handle keyboard shortcut for camera toggle
     const inputManager = gameEngine.getInputManager();
     inputManager.onCommand('toggleCamera', () => {
