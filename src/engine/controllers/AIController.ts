@@ -56,12 +56,12 @@ export class AIController extends Controller {
     // Randomly move a bit every few seconds
     if (this.idleTime > this.idleMaxTime) {
       this.idleTime = 0;
-      const randomDir = new Vector3(
-        (Math.random() - 0.5) * this.moveSpeed,
+      const randomThrust = new Vector3(
+        (Math.random() - 0.5) * this.moveSpeed * 50,
         0,
-        (Math.random() - 0.5) * this.moveSpeed,
+        (Math.random() - 0.5) * this.moveSpeed * 50,
       );
-      return { movement: randomDir };
+      return { movement: Vector3.Zero(), thrust: randomThrust };
     }
 
     return null;
@@ -86,8 +86,8 @@ export class AIController extends Controller {
       this.currentPatrolIndex = (this.currentPatrolIndex + 1) % this.patrolPoints.length;
     }
 
-    const movement = direction.normalize().scale(this.moveSpeed);
-    return { movement };
+    const thrust = direction.normalize().scale(this.moveSpeed * 50);
+    return { movement: Vector3.Zero(), thrust };
   }
 
   private updateFollow(): ControlInput | null {
@@ -101,8 +101,8 @@ export class AIController extends Controller {
       return null;
     }
 
-    const movement = direction.normalize().scale(this.moveSpeed);
-    return { movement };
+    const thrust = direction.normalize().scale(this.moveSpeed * 50);
+    return { movement: Vector3.Zero(), thrust };
   }
 
   private updateFlee(): ControlInput | null {
@@ -116,8 +116,8 @@ export class AIController extends Controller {
       return null;
     }
 
-    const movement = direction.normalize().scale(this.moveSpeed * 1.5);
-    return { movement };
+    const thrust = direction.normalize().scale(this.moveSpeed * 75);
+    return { movement: Vector3.Zero(), thrust };
   }
 
   private generatePatrolPoints(): void {
