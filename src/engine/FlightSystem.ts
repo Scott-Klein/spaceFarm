@@ -37,9 +37,10 @@ export class FlightSystem {
     this.thrustPower = 0.002;
     this.linearDrag = 0.98;
 
-    this.maxAngularSpeed = 0.04;
-    this.rotationPower = 0.001;
-    this.angularDrag = 0.92;
+    // Rotation parameters tuned for weighty, gradual feel
+    this.maxAngularSpeed = 0.015; // Reduced from 0.04 for slower rotation
+    this.rotationPower = 0.0003; // Reduced from 0.001 for gradual acceleration
+    this.angularDrag = 0.96; // Increased from 0.92 for more momentum persistence
   }
 
   /**
