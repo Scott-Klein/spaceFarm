@@ -5,6 +5,7 @@ export class CameraController {
   private camera: ArcRotateCamera;
   private target: GameObject | null = null;
   private offset: Vector3;
+  private smoothing: number = 0.1;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement) {
     this.camera = new ArcRotateCamera(
@@ -16,11 +17,18 @@ export class CameraController {
       scene,
     );
     this.camera.attachControl(canvas, true);
+    // Allow more camera freedom
+    this.camera.lowerRadiusLimit = 5;
+    this.camera.upperRadiusLimit = 50;
     this.offset = new Vector3(0, 5, -10);
   }
 
   setTarget(gameObject: GameObject | null): void {
     this.target = gameObject;
+    if (gameObject) {
+      // Immediately set target position
+      this.camera.target = gameObject.position.clone();
+    }
   }
 
   getTarget(): GameObject | null {
@@ -29,8 +37,9 @@ export class CameraController {
 
   update(): void {
     if (this.target) {
-      // Smoothly follow the target
-      this.camera.target = this.target.position;
+      // Smoothly follow the target position
+      const targetPos = this.target.position;
+      this.camera.target = Vector3.Lerp(this.camera.target, targetPos, this.smoothing);
     }
   }
 

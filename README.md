@@ -1,6 +1,33 @@
 # spaceFarm
 
-This template should help get you started developing with Vue 3 in Vite.
+A space flight simulator built with Vue 3, Vite, and Babylon.js featuring realistic 6DOF (six degrees of freedom) flight mechanics.
+
+## Flight Controls
+
+The game features a realistic flight system with quaternion-based rotation to avoid gimbal lock.
+
+### Keyboard Controls
+- **W** - Forward thrust
+- **S** - Backward thrust (50% power)
+- **A** - Strafe left
+- **D** - Strafe right
+- **Space** - Thrust upward
+- **Shift** - Thrust downward
+- **Q** - Roll left
+- **E** - Roll right
+
+### Mouse Controls
+- **Click on the canvas** to enable mouse look (pointer lock)
+- **Move mouse** to control pitch (up/down) and yaw (left/right)
+- **Press ESC** to release pointer lock
+
+### Flight Physics
+The flight system simulates realistic space flight with:
+- **Inertial physics** - Ships maintain velocity until thrust is applied
+- **6DOF movement** - Full freedom of movement and rotation
+- **No gimbal lock** - Uses quaternions for smooth rotation in all directions
+- **Drag simulation** - Gradual velocity and rotation decay
+- **Thrust vectoring** - All thrust is relative to ship orientation
 
 ## Recommended IDE Setup
 

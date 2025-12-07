@@ -7,17 +7,16 @@ import {
   CreateBox,
 } from '@babylonjs/core';
 import { GameObject } from './GameObject';
+import { FlightSystem } from './FlightSystem';
 
 export class Spaceship extends GameObject {
   private color: Color3;
-  private velocity: Vector3 = Vector3.Zero();
-  private acceleration: number = 1.0;
-  private maxSpeed: number = 0.1;
-  private friction: number = 0.98;
+  private flightSystem: FlightSystem;
 
   constructor(id: string, color: Color3) {
     super(id);
     this.color = color;
+    this.flightSystem = new FlightSystem(this.position);
   }
 
   create(scene: Scene): void {
@@ -60,14 +59,35 @@ export class Spaceship extends GameObject {
     }
   }
 
-  protected handleControlInput(input: { movement: Vector3; rotation?: Vector3 }): void {
-    // Use the input movement as acceleration
-    if (input.movement && !input.movement.equals(Vector3.Zero())) {
-      this.accelerate(input.movement);
+  protected handleControlInput(input: {
+    movement: Vector3;
+    rotation?: Vector3;
+    thrust?: Vector3;
+    angularInput?: Vector3;
+  }): void {
+    // Handle thrust input (relative to ship orientation)
+    if (input.thrust && !input.thrust.equals(Vector3.Zero())) {
+      // Apply thrust in local space directions for each axis
+      const axes = [
+        { direction: new Vector3(0, 0, input.thrust.z), component: input.thrust.z }, // Forward/back
+        { direction: new Vector3(input.thrust.x, 0, 0), component: input.thrust.x }, // Strafe
+        { direction: new Vector3(0, input.thrust.y, 0), component: input.thrust.y }, // Up/down
+      ];
+
+      for (const axis of axes) {
+        if (axis.component !== 0) {
+          this.flightSystem.applyThrust(axis.direction, Math.abs(axis.component));
+        }
+      }
     }
 
-    if (input.rotation) {
-      this.rotation.addInPlace(input.rotation);
+    // Handle rotation input (pitch, yaw, roll)
+    if (input.angularInput && !input.angularInput.equals(Vector3.Zero())) {
+      this.flightSystem.applyRotation(
+        input.angularInput.x, // pitch
+        input.angularInput.y, // yaw
+        input.angularInput.z, // roll
+      );
     }
   }
 
@@ -75,26 +95,26 @@ export class Spaceship extends GameObject {
     // First handle controller input via parent
     super.update(deltaTime);
 
-    // Apply friction to velocity
-    this.velocity.scaleInPlace(this.friction);
+    // Update flight physics
+    this.flightSystem.update(deltaTime);
 
-    // Update position based on velocity
-    this.position.addInPlace(this.velocity);
-  }
+    // Sync position and rotation from flight system
+    this.position.copyFrom(this.flightSystem.position);
+    this.rotation = this.flightSystem.getEulerAngles();
 
-  private accelerate(direction: Vector3): void {
-    // Add acceleration in the given direction
-    const accel = direction.scale(this.acceleration);
-    this.velocity.addInPlace(accel);
-
-    // Clamp to max speed
-    const speed = this.velocity.length();
-    if (speed > this.maxSpeed) {
-      this.velocity.normalize().scaleInPlace(this.maxSpeed);
+    // Update mesh if it exists
+    if (this.mesh) {
+      this.mesh.position.copyFrom(this.position);
+      // Use quaternion for rotation to avoid gimbal lock
+      this.mesh.rotationQuaternion = this.flightSystem.orientation.clone();
     }
   }
 
   getVelocity(): Vector3 {
-    return this.velocity;
+    return this.flightSystem.getVelocity();
+  }
+
+  getFlightSystem(): FlightSystem {
+    return this.flightSystem;
   }
 }
