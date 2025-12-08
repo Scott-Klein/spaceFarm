@@ -1,4 +1,4 @@
-import { ArcRotateCamera, Vector3, Scene, FollowCamera } from '@babylonjs/core';
+import { ArcRotateCamera, Vector3, Scene, FollowCamera, TransformNode } from '@babylonjs/core';
 import { GameObject } from './GameObject';
 import type { useGameStore } from '@/stores/gameState';
 
@@ -7,6 +7,7 @@ type GameStore = ReturnType<typeof useGameStore>;
 export class CameraController {
   private camera: ArcRotateCamera;
   private followCamera?: FollowCamera;
+  private cameraPivot?: TransformNode;
   private cameraMode: 'arcRotate' | 'follow' = 'arcRotate';
   private target: GameObject | null = null;
   private scene: Scene;
@@ -47,13 +48,27 @@ export class CameraController {
       }
     }
 
-    if (this.target && this.cameraMode === 'arcRotate') {
+    if (this.cameraMode === 'follow' && this.cameraPivot && this.target) {
+      // Follow mode: camera follows pivot (which is parented to ship)
+      const targetPos = this.cameraPivot.getAbsolutePosition();
+      const shipPos = this.target.position;
+      const targetMesh = this.target.getMesh();
+
+      // Lerp camera to pivot position
+      this.camera.position = Vector3.Lerp(this.camera.position, targetPos, 0.1);
+      this.camera.setTarget(shipPos);
+
+      // Match ship's roll by updating camera's up vector
+      if (targetMesh) {
+        this.camera.upVector = targetMesh.up.clone();
+      }
+    } else if (this.target && this.cameraMode === 'arcRotate') {
       // ArcRotate mode: smoothly follow the target
       this.camera.target = this.target.position;
+      // Reset up vector to world up for arc rotate mode
+      this.camera.upVector = Vector3.Up();
     }
-    // FollowCamera updates automatically via Babylon's scene graph
   }
-
   getCamera(): ArcRotateCamera {
     return this.camera;
   }
@@ -69,42 +84,33 @@ export class CameraController {
 
   setFollowMode(): void {
     console.log('Switching to follow mode');
-    this.camera.detachControl();
     this.cameraMode = 'follow';
 
-    // Create or reuse FollowCamera
-    if (!this.followCamera) {
-      this.followCamera = new FollowCamera(
-        'FollowCamera',
-        this.target ? this.target.position.add(this.offset) : new Vector3(0, 5, -10),
-        this.scene,
-      );
-    }
-
-    // Configure FollowCamera
     const targetMesh = this.target?.getMesh();
-    console.log('Target mesh:', targetMesh);
-
-    this.followCamera.heightOffset = 3;
-    this.followCamera.radius = 50;
-    this.followCamera.rotationOffset = 180;
-    this.followCamera.cameraAcceleration = 0.05;
-    this.followCamera.maxCameraSpeed = 0.5;
-
-    if (targetMesh) {
-      this.followCamera.lockedTarget = targetMesh;
+    if (!targetMesh) {
+      console.warn('No target mesh for follow mode');
+      return;
     }
 
-    // Make FollowCamera the active camera
-    this.scene.activeCamera = this.followCamera;
-    console.log('Active camera is now:', this.scene.activeCamera?.name);
+    // Create pivot attached to ship
+    if (!this.cameraPivot) {
+      this.cameraPivot = new TransformNode('cameraPivot', this.scene);
+      this.cameraPivot.parent = targetMesh;
+      this.cameraPivot.position = new Vector3(0, 3, -10); // behind and above in local space
+    }
+
+    // Keep using ArcRotateCamera but disable user controls
+    this.scene.activeCamera = this.camera;
+    this.camera.detachControl();
+
+    console.log('Follow mode active with pivot');
   }
 
   setArcRotateMode(): void {
     console.log('Switching to arc rotate mode');
     this.cameraMode = 'arcRotate';
 
-    // Make ArcRotateCamera the active camera
+    // Make ArcRotateCamera the active camera and enable controls
     this.scene.activeCamera = this.camera;
     this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
   }

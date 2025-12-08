@@ -18,7 +18,7 @@ export class Spaceship extends GameObject {
       yawSpeed: 0.001, // Slower yaw - heavy turning
       drag: 0.999, // Almost no drag! Pure inertia
       mass: 1.0, // Low mass
-      rotationalInertia: 15.0, // Much higher - heavy, weighty rotations
+      rotationalInertia: 10.0, // Much higher - heavy, weighty rotations
       lateralDrag: 0.999, // Also almost no lateral drag - pure momentum
     });
   }

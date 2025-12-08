@@ -20,6 +20,7 @@
   "dependencies": {
     "@babylonjs/core": "^8.40.1",
     "@babylonjs/materials": "^8.40.1",
+    "@phosphor-icons/vue": "^2.2.1",
     "@tailwindcss/vite": "^4.1.17",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.1.17",

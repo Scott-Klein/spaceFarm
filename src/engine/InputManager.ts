@@ -25,9 +25,9 @@ export class InputManager {
   constructor(scene: Scene) {
     // LEFT-HAND ONLY flight control scheme
 
-    // Throttle control - Shift/Ctrl (pinky finger)
-    this.keyBindings.set('shift', 'forward'); // Increase thrust
-    this.keyBindings.set('control', 'backward'); // Decrease thrust
+    // Throttle control - z/x
+    this.keyBindings.set('x', 'forward'); // Increase thrust
+    this.keyBindings.set('z', 'backward'); // Decrease thrust
 
     // Pitch (nose up/down) - W/S (middle/ring finger)
     this.keyBindings.set('w', 'pitchUp'); // Pitch up

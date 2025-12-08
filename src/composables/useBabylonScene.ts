@@ -1,45 +1,52 @@
 import { onMounted, onUnmounted, type Ref } from 'vue';
-import { Engine } from '@babylonjs/core/Engines/engine';
+import { WebGPUEngine } from '@babylonjs/core/Engines/webgpuEngine';
 import { Scene } from '@babylonjs/core/scene';
 
 export interface BabylonSceneOptions {
   canvasRef: Ref<HTMLCanvasElement | null>;
-  onSceneReady?: (scene: Scene, engine: Engine) => void;
+  onSceneReady?: (scene: Scene, engine: WebGPUEngine) => void;
   onRender?: (scene: Scene) => void;
+  engineOptions?: {
+    adaptToDeviceRatio?: boolean;
+    antialias?: boolean;
+  };
 }
 
-/**
- * Composable for setting up a BabylonJS scene
- *
- * @param options Configuration options
- * @returns Object containing scene and engine references
- *
- * @example
- * const canvasRef = ref<HTMLCanvasElement | null>(null)
- *
- * useBabylonScene({
- *   canvasRef,
- *   onSceneReady: (scene, engine) => {
- *     // Set up your scene here
- *   }
- * })
- */
 export function useBabylonScene(options: BabylonSceneOptions) {
-  const { canvasRef, onSceneReady, onRender } = options;
+  const {
+    canvasRef,
+    onSceneReady,
+    onRender,
+    engineOptions = { adaptToDeviceRatio: true, antialias: true }
+  } = options;
 
-  let engine: Engine | null = null;
+  let engine: WebGPUEngine | null = null;
   let scene: Scene | null = null;
 
-  onMounted(() => {
+  onMounted(async () => {
     const canvas = canvasRef.value;
-
     if (!canvas) {
       console.error('Canvas element not found');
       return;
     }
 
-    // Create engine and scene
-    engine = new Engine(canvas, true);
+    // Check WebGPU support
+    const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
+
+    if (!webGPUSupported) {
+      console.error('WebGPU is not supported in this browser');
+      // You could show an error message to the user here
+      return;
+    }
+
+    // Load WebGPU extensions
+    await import('@babylonjs/core/Engines/WebGPU/Extensions/');
+
+    // Create WebGPU engine
+    engine = new WebGPUEngine(canvas, engineOptions);
+    await engine.initAsync();
+
+    // Create scene
     scene = new Scene(engine);
 
     // Call the setup callback

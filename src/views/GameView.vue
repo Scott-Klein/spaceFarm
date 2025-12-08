@@ -8,10 +8,7 @@
     ></canvas>
 
     <!-- UI Overlay Components - All read from Pinia store -->
-    <ControlsDisplay />
-    <SpeedIndicator />
-    <ThrottleIndicator />
-    <OrientationIndicator />
+    <ShipUi />
     <CameraToggle />
   </div>
 </template>
@@ -28,10 +25,7 @@ import { ref } from 'vue';
 import { useBabylonScene } from '@/composables/useBabylonScene';
 import { GameEngine, SceneBuilder } from '@/engine';
 import { useGameStore } from '@/stores/gameState';
-import ControlsDisplay from '@/components/ui/ControlsDisplay.vue';
-import SpeedIndicator from '@/components/ui/SpeedIndicator.vue';
-import ThrottleIndicator from '@/components/ui/ThrottleIndicator.vue';
-import OrientationIndicator from '@/components/ui/OrientationIndicator.vue';
+import ShipUi from '@/components/ui/ShipUi.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -46,7 +40,7 @@ useBabylonScene({
     const gameEngine = new GameEngine(scene, canvas, gameStore);
 
     // Connect game engine to Pinia store (bidirectional)
- 
+
     // Game → UI: Push state updates every frame (~60fps)
     gameEngine.setStateUpdateCallback((state) => {
       gameStore.updatePlayerState(state);
