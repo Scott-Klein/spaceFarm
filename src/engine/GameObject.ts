@@ -17,6 +17,12 @@ export abstract class GameObject {
 
   abstract create(scene: Scene): void;
 
+
+
+  public get Mesh() : Mesh | null {
+    return this.mesh;
+  }
+
   update(deltaTime: number): void {
     // Get input from controller if possessed
     if (this.controller) {

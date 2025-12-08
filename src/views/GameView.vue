@@ -46,7 +46,7 @@ useBabylonScene({
     const gameEngine = new GameEngine(scene, canvas);
 
     // Connect game engine to Pinia store (bidirectional)
-
+ 
     // Game → UI: Push state updates every frame (~60fps)
     gameEngine.setStateUpdateCallback((state) => {
       gameStore.updatePlayerState(state);
