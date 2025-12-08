@@ -42,8 +42,8 @@ useBabylonScene({
   onSceneReady: (scene) => {
     const canvas = canvasRef.value!;
 
-    // Initialize the game engine
-    const gameEngine = new GameEngine(scene, canvas);
+    // Initialize the game engine with store access
+    const gameEngine = new GameEngine(scene, canvas, gameStore);
 
     // Connect game engine to Pinia store (bidirectional)
  

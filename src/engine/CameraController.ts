@@ -1,5 +1,8 @@
 import { ArcRotateCamera, Vector3, Scene, FollowCamera } from '@babylonjs/core';
 import { GameObject } from './GameObject';
+import type { useGameStore } from '@/stores/gameState';
+
+type GameStore = ReturnType<typeof useGameStore>;
 
 export class CameraController {
   private camera: ArcRotateCamera;
@@ -8,9 +11,11 @@ export class CameraController {
   private target: GameObject | null = null;
   private scene: Scene;
   private offset: Vector3;
+  private gameStore: GameStore;
 
-  constructor(scene: Scene, canvas: HTMLCanvasElement) {
+  constructor(scene: Scene, canvas: HTMLCanvasElement, gameStore: GameStore) {
     this.scene = scene;
+    this.gameStore = gameStore;
     this.camera = new ArcRotateCamera(
       'GameCamera',
       Math.PI / 2,
@@ -32,7 +37,17 @@ export class CameraController {
   }
 
   update(): void {
-    if (this.target && this.cameraMode === 'arcRotate') {
+    // Auto-detect mode changes from store
+    const desiredMode = this.gameStore.cameraMode === 'free' ? 'arcRotate' : 'follow';
+    if (desiredMode !== this.cameraMode) {
+      if (desiredMode === 'arcRotate') {
+        this.setArcRotateMode();
+      } else {
+        this.setFollowMode();
+      }
+    }
+
+    if (this.target ) {
       // Smoothly follow the target
       this.camera.target = this.target.position;
     }
@@ -59,8 +74,8 @@ export class CameraController {
       this.target ? this.target.position.add(this.offset) : new Vector3(0, 5, -10),
       this.scene,
     );
-    this.followCamera.maxCameraSpeed = 0.05;
-    this.followCamera.cameraAcceleration = 0.001;
+    this.followCamera.maxCameraSpeed = 0.1;
+    this.followCamera.cameraAcceleration = 0.1;
     this.followCamera.lockedTarget = this.target ? this.target.Mesh : null;
   }
 

@@ -3,6 +3,9 @@ import { GameObject } from './GameObject';
 import { CameraController } from './CameraController';
 import { InputManager } from './InputManager';
 import { Spaceship } from './Spaceship';
+import type { useGameStore } from '@/stores/gameState';
+
+type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
 export type StateUpdateCallback = (state: {
@@ -23,9 +26,9 @@ export class GameEngine {
   private lastTime: number = performance.now();
   private stateUpdateCallback: StateUpdateCallback | null = null;
 
-  constructor(scene: Scene, canvas: HTMLCanvasElement) {
+  constructor(scene: Scene, canvas: HTMLCanvasElement, gameStore: GameStore) {
     this.scene = scene;
-    this.cameraController = new CameraController(scene, canvas);
+    this.cameraController = new CameraController(scene, canvas, gameStore);
     this.inputManager = new InputManager(scene);
 
     this.setupScene();
