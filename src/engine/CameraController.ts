@@ -47,10 +47,11 @@ export class CameraController {
       }
     }
 
-    if (this.target ) {
-      // Smoothly follow the target
+    if (this.target && this.cameraMode === 'arcRotate') {
+      // ArcRotate mode: smoothly follow the target
       this.camera.target = this.target.position;
     }
+    // FollowCamera updates automatically via Babylon's scene graph
   }
 
   getCamera(): ArcRotateCamera {
@@ -67,20 +68,44 @@ export class CameraController {
   }
 
   setFollowMode(): void {
+    console.log('Switching to follow mode');
     this.camera.detachControl();
     this.cameraMode = 'follow';
-    this.followCamera = new FollowCamera(
-      'FollowCamera',
-      this.target ? this.target.position.add(this.offset) : new Vector3(0, 5, -10),
-      this.scene,
-    );
-    this.followCamera.maxCameraSpeed = 0.1;
-    this.followCamera.cameraAcceleration = 0.1;
-    this.followCamera.lockedTarget = this.target ? this.target.Mesh : null;
+    
+    // Create or reuse FollowCamera
+    if (!this.followCamera) {
+      this.followCamera = new FollowCamera(
+        'FollowCamera',
+        this.target ? this.target.position.add(this.offset) : new Vector3(0, 5, -10),
+        this.scene,
+      );
+    }
+    
+    // Configure FollowCamera
+    const targetMesh = this.target?.getMesh();
+    console.log('Target mesh:', targetMesh);
+    
+    this.followCamera.heightOffset = 3;
+    this.followCamera.radius = 10;
+    this.followCamera.rotationOffset = 0;
+    this.followCamera.cameraAcceleration = 0.05;
+    this.followCamera.maxCameraSpeed = 0.5;
+    
+    if (targetMesh) {
+      this.followCamera.lockedTarget = targetMesh;
+    }
+    
+    // Make FollowCamera the active camera
+    this.scene.activeCamera = this.followCamera;
+    console.log('Active camera is now:', this.scene.activeCamera?.name);
   }
 
   setArcRotateMode(): void {
+    console.log('Switching to arc rotate mode');
     this.cameraMode = 'arcRotate';
+    
+    // Make ArcRotateCamera the active camera
+    this.scene.activeCamera = this.camera;
     this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
   }
 }
