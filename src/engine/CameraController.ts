@@ -71,7 +71,7 @@ export class CameraController {
     console.log('Switching to follow mode');
     this.camera.detachControl();
     this.cameraMode = 'follow';
-    
+
     // Create or reuse FollowCamera
     if (!this.followCamera) {
       this.followCamera = new FollowCamera(
@@ -80,21 +80,21 @@ export class CameraController {
         this.scene,
       );
     }
-    
+
     // Configure FollowCamera
     const targetMesh = this.target?.getMesh();
     console.log('Target mesh:', targetMesh);
-    
+
     this.followCamera.heightOffset = 3;
-    this.followCamera.radius = 10;
-    this.followCamera.rotationOffset = 0;
+    this.followCamera.radius = 50;
+    this.followCamera.rotationOffset = 180;
     this.followCamera.cameraAcceleration = 0.05;
     this.followCamera.maxCameraSpeed = 0.5;
-    
+
     if (targetMesh) {
       this.followCamera.lockedTarget = targetMesh;
     }
-    
+
     // Make FollowCamera the active camera
     this.scene.activeCamera = this.followCamera;
     console.log('Active camera is now:', this.scene.activeCamera?.name);
@@ -103,7 +103,7 @@ export class CameraController {
   setArcRotateMode(): void {
     console.log('Switching to arc rotate mode');
     this.cameraMode = 'arcRotate';
-    
+
     // Make ArcRotateCamera the active camera
     this.scene.activeCamera = this.camera;
     this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
