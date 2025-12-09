@@ -3,6 +3,7 @@ import { GameEngine } from './GameEngine';
 import { Spaceship } from './Spaceship';
 import { HumanController } from './controllers/HumanController';
 import { AIController } from './controllers/AIController';
+import { CapitalShip } from './CapitalShip';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -32,7 +33,7 @@ export class SceneBuilder {
     this.createAIShips(aiShipCount);
 
     // Select player ship to start
-    this.gameEngine.selectGameObject('player');
+    this.gameEngine.selectGameObject('player-capital');
   }
 
   /**
@@ -75,7 +76,7 @@ export class SceneBuilder {
    * Create the player-controlled spaceship
    */
   private createPlayerShip(): void {
-    const playerShip = new Spaceship('player', new Color3(0.2, 0.6, 1));
+    const playerShip = new CapitalShip('player-capital', new Color3(0.2, 0.6, 1), '/models/MilCap.glb');
     playerShip.position = new Vector3(0, 0, 0);
 
     const humanController = new HumanController(this.gameEngine.getInputManager());

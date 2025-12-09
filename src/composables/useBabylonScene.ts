@@ -17,7 +17,7 @@ export function useBabylonScene(options: BabylonSceneOptions) {
     canvasRef,
     onSceneReady,
     onRender,
-    engineOptions = { adaptToDeviceRatio: true, antialias: true }
+    engineOptions = { adaptToDeviceRatio: true, antialias: true },
   } = options;
 
   let engine: WebGPUEngine | null = null;
