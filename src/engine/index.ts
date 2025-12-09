@@ -1,6 +1,7 @@
 export { GameObject } from './GameObject';
 export { Spaceship } from './Spaceship';
 export { CapitalShip } from './CapitalShip';
+export { EngineParticleSystem } from './EngineParticleSystem';
 export { GameEngine } from './GameEngine';
 export { InputManager } from './InputManager';
 export { CameraController } from './CameraController';

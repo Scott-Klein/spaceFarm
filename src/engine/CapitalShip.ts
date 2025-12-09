@@ -1,9 +1,11 @@
 import { Scene, Color3, Mesh, ImportMeshAsync, CreateBox } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import { Spaceship } from './Spaceship';
+import { EngineParticleSystem } from './EngineParticleSystem';
 
 export class CapitalShip extends Spaceship {
   private modelPath: string;
+  private engineParticles?: EngineParticleSystem;
 
   constructor(id: string, color: Color3, modelPath: string) {
     super(id, color);
@@ -18,6 +20,25 @@ export class CapitalShip extends Spaceship {
 
     // Load the actual model asynchronously in the background
     this.loadModelAsync(scene);
+  }
+
+  update(deltaTime: number): void {
+    // Call parent update (handles controller input, flight physics)
+    super.update(deltaTime);
+
+    // Update engine particles based on current throttle
+    if (this.engineParticles) {
+      const throttle = this.getThrustPercent();
+      this.engineParticles.updateThrottle(throttle);
+    }
+  }
+
+  dispose(): void {
+    // Clean up particle systems
+    if (this.engineParticles) {
+      this.engineParticles.dispose();
+    }
+    super.dispose();
   }
 
   private async loadModelAsync(scene: Scene): Promise<void> {
@@ -56,6 +77,32 @@ export class CapitalShip extends Spaceship {
           // Restore position and rotation from placeholder
           this.mesh.position = currentPosition;
           this.mesh.rotation = currentRotation;
+        }
+
+        // Find engine nodes in the loaded model (by naming convention)
+        // Use result.transformNodes instead of scene.transformNodes to get the imported nodes
+        const allEngines = result.transformNodes.filter(
+          (node) =>
+            node.name.includes('ENGINE_SMALL') ||
+            node.name.includes('ENGINE_MEDIUM') ||
+            node.name.includes('ENGINE_LARGE') ||
+            node.name.includes('ENGINE_MASSIVE'),
+        );
+
+        console.log(
+          'Found transform nodes:',
+          result.transformNodes.map((n) => n.name),
+        );
+        console.log('Engine nodes found:', allEngines.length);
+        allEngines.forEach((engine) => console.log(`  - ${engine.name}`));
+        if (allEngines.length > 0) {
+          this.engineParticles = new EngineParticleSystem(scene);
+          this.engineParticles.createEngineExhaust(allEngines);
+          console.log(`Created ${allEngines.length} engine particle systems`);
+        } else {
+          console.warn(
+            'No engine nodes found. Expected nodes named ENGINE_MEDIUM_* or ENGINE_LARGE_*',
+          );
         }
 
         // Optional: Apply color tint to the material if needed
