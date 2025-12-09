@@ -48,18 +48,25 @@ export class CameraController {
       }
     }
 
-    if (this.cameraMode === 'follow' && this.cameraPivot && this.target) {
-      // Follow mode: camera follows pivot (which is parented to ship)
-      const targetPos = this.cameraPivot.getAbsolutePosition();
-      const shipPos = this.target.position;
+    if (this.cameraMode === 'follow' && this.target) {
       const targetMesh = this.target.getMesh();
 
-      // Lerp camera to pivot position
-      this.camera.position = Vector3.Lerp(this.camera.position, targetPos, 0.1);
-      this.camera.setTarget(shipPos);
+      // Recreate pivot if mesh changed (e.g., model loaded)
+      if (targetMesh && this.cameraPivot && this.cameraPivot.parent !== targetMesh) {
+        console.log('Mesh changed, recreating camera pivot');
+        this.setFollowMode();
+      }
 
-      // Match ship's roll by updating camera's up vector
-      if (targetMesh) {
+      if (this.cameraPivot && targetMesh) {
+        // Follow mode: camera follows pivot (which is parented to ship)
+        const targetPos = this.cameraPivot.getAbsolutePosition();
+        const shipPos = this.target.position;
+
+        // Lerp camera to pivot position
+        this.camera.position = Vector3.Lerp(this.camera.position, targetPos, 0.1);
+        this.camera.setTarget(shipPos);
+
+        // Match ship's roll by updating camera's up vector
         this.camera.upVector = targetMesh.up.clone();
       }
     } else if (this.target && this.cameraMode === 'arcRotate') {
@@ -92,12 +99,16 @@ export class CameraController {
       return;
     }
 
-    // Create pivot attached to ship
-    if (!this.cameraPivot) {
-      this.cameraPivot = new TransformNode('cameraPivot', this.scene);
-      this.cameraPivot.parent = targetMesh;
-      this.cameraPivot.position = new Vector3(0, 3, -10); // behind and above in local space
+    // Recreate pivot each time to handle mesh replacement
+    if (this.cameraPivot) {
+      this.cameraPivot.dispose();
     }
+
+    this.cameraPivot = new TransformNode('cameraPivot', this.scene);
+    this.cameraPivot.parent = targetMesh;
+    // In local space: negative Z is forward, so positive Z is behind
+    // Y is up, X is right
+    this.cameraPivot.position = new Vector3(0, 5, 25); // behind and above in local space
 
     // Keep using ArcRotateCamera but disable user controls
     this.scene.activeCamera = this.camera;
