@@ -10,7 +10,7 @@ import {
 import GameObject from '../GameObject';
 import FlightSystem, { type FlightInput } from '../FlightSystem';
 import { type IEngineTrail } from './TrailMeshSystem';
-import BillboardExhaustSystem from './BillboardExhaustSystem';
+import EngineExhaustSystem from './EngineExhaustSystem';
 
 export default class Spaceship extends GameObject {
   private color: Color3;
@@ -42,7 +42,7 @@ export default class Spaceship extends GameObject {
     if (this.mesh) {
       this.initializeMesh(this.mesh);
       this.createDefaultEngineNodes();
-      this.engineTrail = new BillboardExhaustSystem(this.engineNodes, scene);
+      this.engineTrail = new EngineExhaustSystem(this.engineNodes, scene);
     }
   }
 
