@@ -15,7 +15,7 @@ export type KeyCommand =
   | 'yawRight'
   | 'toggleCamera';
 
-export class InputManager {
+export default class InputManager {
   private keysPressed = new Set<string>();
   private keyBindings: Map<string, KeyCommand> = new Map();
   private commandCallbacks: Map<KeyCommand, () => void> = new Map();

@@ -1,8 +1,8 @@
 import { Scene, HemisphericLight, Vector3, Color3 } from '@babylonjs/core';
-import { GameObject } from './GameObject';
-import { CameraController } from './CameraController';
-import { InputManager } from './InputManager';
-import { Spaceship } from './Spaceship';
+import GameObject from './GameObject';
+import CameraController from './CameraController';
+import InputManager from './InputManager';
+import Spaceship from './ships/Spaceship';
 import type { useGameStore } from '@/stores/gameState';
 
 type GameStore = ReturnType<typeof useGameStore>;
@@ -17,7 +17,7 @@ export type StateUpdateCallback = (state: {
   yaw: number;
 }) => void;
 
-export class GameEngine {
+export default class GameEngine {
   private scene: Scene;
   private cameraController: CameraController;
   private inputManager: InputManager;

@@ -6,7 +6,6 @@ import {
   Scene,
   TransformNode,
   AbstractMesh,
-  GPUParticleSystem,
 } from '@babylonjs/core';
 
 export type EngineType = 'ENGINE_SMALL' | 'ENGINE_MEDIUM' | 'ENGINE_LARGE' | 'ENGINE_MASSIVE';
@@ -25,7 +24,7 @@ interface EngineConfig {
   colorDead: Color4;
 }
 
-export class EngineParticleSystem {
+export default class EngineParticleSystem {
   private particleSystems: ParticleSystem[] = [];
   private trackedNodes: Map<ParticleSystem, TransformNode> = new Map();
   private systemConfigs: Map<ParticleSystem, EngineConfig> = new Map();
@@ -42,8 +41,8 @@ export class EngineParticleSystem {
       baseEmitRate: 50,
       baseMinPower: 1,
       baseMaxPower: 2,
-      color1: new Color4(0.3, 0.7, 1.0, 1.0), // Cyan-blue
-      color2: new Color4(0.8, 0.9, 1.0, 1.0), // Light blue-white
+      color1: new Color4(0.3, 0.7, 1.0, 1.0),
+      color2: new Color4(0.8, 0.9, 1.0, 1.0),
       colorDead: new Color4(0.5, 0.7, 0.9, 0.0),
     },
     ENGINE_MEDIUM: {
@@ -55,8 +54,8 @@ export class EngineParticleSystem {
       baseEmitRate: 100,
       baseMinPower: 2,
       baseMaxPower: 4,
-      color1: new Color4(0.2, 0.5, 1.0, 1.0), // Bright blue
-      color2: new Color4(1.0, 0.6, 0.2, 1.0), // Orange
+      color1: new Color4(0.2, 0.5, 1.0, 1.0),
+      color2: new Color4(1.0, 0.6, 0.2, 1.0),
       colorDead: new Color4(0.8, 0.1, 0.1, 0.0),
     },
     ENGINE_LARGE: {
@@ -68,8 +67,8 @@ export class EngineParticleSystem {
       baseEmitRate: 200,
       baseMinPower: 3,
       baseMaxPower: 6,
-      color1: new Color4(1.0, 0.3, 0.1, 1.0), // Intense red-orange
-      color2: new Color4(1.0, 0.8, 0.0, 1.0), // Yellow-orange
+      color1: new Color4(1.0, 0.3, 0.1, 1.0),
+      color2: new Color4(1.0, 0.8, 0.0, 1.0),
       colorDead: new Color4(1.0, 0.2, 0.0, 0.0),
     },
     ENGINE_MASSIVE: {
@@ -81,8 +80,8 @@ export class EngineParticleSystem {
       baseEmitRate: 300,
       baseMinPower: 5,
       baseMaxPower: 10,
-      color1: new Color4(1.0, 0.1, 0.5, 1.0), // Magenta-red
-      color2: new Color4(1.0, 0.5, 0.0, 1.0), // Deep orange
+      color1: new Color4(1.0, 0.1, 0.5, 1.0),
+      color2: new Color4(1.0, 0.5, 0.0, 1.0),
       colorDead: new Color4(1.0, 0.0, 0.2, 0.0),
     },
   };
@@ -110,7 +109,7 @@ export class EngineParticleSystem {
     // Clean up any existing systems
     this.dispose();
 
-    // Create a flare texture (you can replace with your own texture)
+    // Create a flare texture
     const texture = new Texture('https://www.babylonjs.com/assets/Flare.png', this.scene);
 
     emitters.forEach((emitter, index) => {
@@ -123,7 +122,7 @@ export class EngineParticleSystem {
       // Get configuration for this engine type
       const config = EngineParticleSystem.ENGINE_CONFIGS[engineType];
 
-      const particleSystem = new ParticleSystem(`engine-${index}`, config.capacity*10, this.scene);
+      const particleSystem = new ParticleSystem(`engine-${index}`, config.capacity, this.scene);
 
       // Set the texture
       particleSystem.particleTexture = texture;
@@ -152,7 +151,7 @@ export class EngineParticleSystem {
       particleSystem.maxLifeTime = config.maxLifeTime;
 
       // Emission rate (from config)
-      particleSystem.emitRate = config.baseEmitRate * 100;
+      particleSystem.emitRate = config.baseEmitRate;
 
       // Blend mode
       particleSystem.blendMode = ParticleSystem.BLENDMODE_ONEONE;
@@ -177,11 +176,10 @@ export class EngineParticleSystem {
       // Angular speed
       particleSystem.minAngularSpeed = 0;
       particleSystem.maxAngularSpeed = Math.PI;
-      const isGPUSupported = GPUParticleSystem.IsSupported;
-      console.log(`GPUParticleSystem supported: ${isGPUSupported}`);
-      // Gravity (slight downward pull for realism)
-      particleSystem.gravity = new Vector3(0, -0.5, 0);
-      particleSystem.createPointEmitter(new Vector3(-0.5, 0.5, -5), new Vector3(0.5, -0.5, -5));
+
+      // Use cone emitter
+      const ce =particleSystem.createConeEmitter(0.5, 3.141);
+      ce.emitFromSpawnPointOnly = true;
       // Start the particle system
       particleSystem.start();
 

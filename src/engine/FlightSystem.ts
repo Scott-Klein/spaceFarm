@@ -8,7 +8,7 @@ export interface FlightInput {
   brake?: boolean; // Air brake
 }
 
-export class FlightSystem {
+export default class FlightSystem {
   // Physics properties
   private velocity: Vector3 = Vector3.Zero();
   private angularVelocity: Vector3 = Vector3.Zero();

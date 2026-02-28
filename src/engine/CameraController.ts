@@ -1,10 +1,10 @@
 import { ArcRotateCamera, Vector3, Scene, FollowCamera, TransformNode } from '@babylonjs/core';
-import { GameObject } from './GameObject';
+import GameObject from './GameObject';
 import type { useGameStore } from '@/stores/gameState';
 
 type GameStore = ReturnType<typeof useGameStore>;
 
-export class CameraController {
+export default class CameraController {
   private camera: ArcRotateCamera;
   private followCamera?: FollowCamera;
   private cameraPivot?: TransformNode;

@@ -1,12 +1,11 @@
 import { Vector3 } from '@babylonjs/core';
-import { Controller } from '../Controller';
-import type { ControlInput } from '../Controller';
+import Controller, { type ControlInput } from '../Controller';
 import type { FlightInput } from '../FlightSystem';
-import { GameObject } from '../GameObject';
+import GameObject from '../GameObject';
 
 export type AIBehavior = 'idle' | 'patrol' | 'follow' | 'flee';
 
-export class AIController extends Controller {
+export default class AIController extends Controller {
   private behavior: AIBehavior;
   private target: GameObject | null = null;
   private patrolPoints: Vector3[] = [];

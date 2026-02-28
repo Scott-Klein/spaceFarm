@@ -1,5 +1,5 @@
 import { Vector3 } from '@babylonjs/core';
-import type { GameObject } from './GameObject';
+import type GameObject from './GameObject';
 import type { FlightInput } from './FlightSystem';
 
 export interface ControlInput {
@@ -9,7 +9,7 @@ export interface ControlInput {
   action?: string;
 }
 
-export abstract class Controller {
+export default abstract class Controller {
   protected controlledObject: GameObject | null = null;
 
   possess(gameObject: GameObject): void {

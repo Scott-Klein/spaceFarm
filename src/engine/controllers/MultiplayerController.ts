@@ -1,6 +1,5 @@
 import { Vector3 } from '@babylonjs/core';
-import { Controller } from '../Controller';
-import type { ControlInput } from '../Controller';
+import Controller, { type ControlInput } from '../Controller';
 
 export interface NetworkInput {
   movement: Vector3;
@@ -8,7 +7,7 @@ export interface NetworkInput {
   timestamp: number;
 }
 
-export class MultiplayerController extends Controller {
+export default class MultiplayerController extends Controller {
   private inputBuffer: NetworkInput[] = [];
   private interpolationDelay = 100; // ms
   private lastInput: NetworkInput | null = null;

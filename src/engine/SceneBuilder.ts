@@ -1,9 +1,9 @@
 import { Scene, Vector3, Color3, CreateSphere, StandardMaterial } from '@babylonjs/core';
-import { GameEngine } from './GameEngine';
-import { Spaceship } from './Spaceship';
-import { HumanController } from './controllers/HumanController';
-import { AIController } from './controllers/AIController';
-import { CapitalShip } from './CapitalShip';
+import GameEngine from './GameEngine';
+import Spaceship from './ships/Spaceship';
+import HumanController from './controllers/HumanController';
+import AIController from './controllers/AIController';
+import CapitalShip from './ships/CapitalShip';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -12,7 +12,7 @@ export interface SceneConfig {
   aiShipCount?: number;
 }
 
-export class SceneBuilder {
+export default class SceneBuilder {
   private gameEngine: GameEngine;
   private scene: Scene;
 
@@ -76,7 +76,11 @@ export class SceneBuilder {
    * Create the player-controlled spaceship
    */
   private createPlayerShip(): void {
-    const playerShip = new CapitalShip('player-capital', new Color3(0.2, 0.6, 1), '/models/MilCap.glb');
+    const playerShip = new CapitalShip(
+      'player-capital',
+      new Color3(0.2, 0.6, 1),
+      '/models/MilCap.glb',
+    );
     playerShip.position = new Vector3(0, 0, 0);
 
     const humanController = new HumanController(this.gameEngine.getInputManager());

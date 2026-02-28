@@ -1,11 +1,10 @@
 import { Scene, Color3, Mesh, ImportMeshAsync, CreateBox } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
-import { Spaceship } from './Spaceship';
-import { EngineParticleSystem } from './EngineParticleSystem';
+import Spaceship from './Spaceship';
+import TrailMeshSystem from './TrailMeshSystem';
 
-export class CapitalShip extends Spaceship {
+export default class CapitalShip extends Spaceship {
   private modelPath: string;
-  private engineParticles?: EngineParticleSystem;
 
   constructor(id: string, color: Color3, modelPath: string) {
     super(id, color);
@@ -13,31 +12,27 @@ export class CapitalShip extends Spaceship {
   }
 
   create(scene: Scene): void {
+    this.scene = scene;
+
     // Create a placeholder mesh immediately (simple box)
     this.mesh = CreateBox(`${this.id}-placeholder`, { size: 2 }, scene);
     this.mesh.position = this.position.clone();
     this.mesh.rotation = this.rotation.clone();
+
+    // Create default engine node for placeholder, then load actual model
+    this.createDefaultEngineNodes();
+    this.engineTrail = new TrailMeshSystem(this.engineNodes, scene);
 
     // Load the actual model asynchronously in the background
     this.loadModelAsync(scene);
   }
 
   update(deltaTime: number): void {
-    // Call parent update (handles controller input, flight physics)
+    // Call parent update (handles controller input, flight physics, trail)
     super.update(deltaTime);
-
-    // Update engine particles based on current throttle
-    if (this.engineParticles) {
-      const throttle = this.getThrustPercent();
-      this.engineParticles.updateThrottle(throttle);
-    }
   }
 
   dispose(): void {
-    // Clean up particle systems
-    if (this.engineParticles) {
-      this.engineParticles.dispose();
-    }
     super.dispose();
   }
 
@@ -51,7 +46,17 @@ export class CapitalShip extends Spaceship {
         const currentPosition = this.mesh?.position.clone();
         const currentRotation = this.mesh?.rotation.clone();
 
-        // Dispose of the placeholder mesh
+        // Dispose of the placeholder mesh and its trail
+        if (this.engineTrail) {
+          this.engineTrail.dispose();
+          this.engineTrail = null;
+        }
+        // Dispose old engine nodes
+        for (const node of this.engineNodes) {
+          node.dispose();
+        }
+        this.engineNodes = [];
+
         if (this.mesh) {
           this.mesh.dispose();
         }
@@ -77,44 +82,31 @@ export class CapitalShip extends Spaceship {
           // Restore position and rotation from placeholder
           this.mesh.position = currentPosition;
           this.mesh.rotation = currentRotation;
-        }
 
-        // Find engine nodes in the loaded model (by naming convention)
-        // Use result.transformNodes instead of scene.transformNodes to get the imported nodes
-        const allEngines = result.transformNodes.filter(
-          (node) =>
-            node.name.includes('ENGINE_SMALL') ||
-            node.name.includes('ENGINE_MEDIUM') ||
-            node.name.includes('ENGINE_LARGE') ||
-            node.name.includes('ENGINE_MASSIVE'),
-        );
-
-        console.log(
-          'Found transform nodes:',
-          result.transformNodes.map((n) => n.name),
-        );
-        console.log('Engine nodes found:', allEngines.length);
-        allEngines.forEach((engine) => console.log(`  - ${engine.name}`));
-        if (allEngines.length > 0) {
-          this.engineParticles = new EngineParticleSystem(scene);
-          this.engineParticles.createEngineExhaust(allEngines);
-          console.log(`Created ${allEngines.length} engine particle systems`);
-        } else {
-          console.warn(
-            'No engine nodes found. Expected nodes named ENGINE_MEDIUM_* or ENGINE_LARGE_*',
+          // Find ENGINE_* nodes from the loaded model
+          const modelEngineNodes = result.transformNodes.filter(
+            (node) =>
+              node.name.includes('ENGINE_SMALL') ||
+              node.name.includes('ENGINE_MEDIUM') ||
+              node.name.includes('ENGINE_LARGE') ||
+              node.name.includes('ENGINE_MASSIVE'),
           );
-        }
 
-        // Optional: Apply color tint to the material if needed
-        // You can uncomment this if you want to tint the model
-        /*
-        if (this.mesh.material) {
-          const material = this.mesh.material as StandardMaterial;
-          if (material.diffuseColor) {
-            material.diffuseColor = this.color;
+          if (modelEngineNodes.length > 0) {
+            this.engineNodes = modelEngineNodes;
+            console.log(
+              `Found ${modelEngineNodes.length} engine nodes:`,
+              modelEngineNodes.map((n) => n.name),
+            );
+          } else {
+            // Fallback to default engine node if no ENGINE_* nodes found
+            console.warn('No ENGINE_* nodes found in model, using default');
+            this.createDefaultEngineNodes();
           }
+
+          // Create engine trails for all engine nodes
+          this.engineTrail = new TrailMeshSystem(this.engineNodes, scene);
         }
-        */
       }
     } catch (error) {
       console.error(`Failed to load model ${this.modelPath}:`, error);

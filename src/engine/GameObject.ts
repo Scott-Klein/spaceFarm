@@ -1,8 +1,8 @@
 import { Mesh, Scene, Vector3 } from '@babylonjs/core';
-import type { Controller } from './Controller';
+import type Controller from './Controller';
 import type { FlightInput } from './FlightSystem';
 
-export abstract class GameObject {
+export default abstract class GameObject {
   protected mesh: Mesh | null = null;
   public position: Vector3;
   public rotation: Vector3;

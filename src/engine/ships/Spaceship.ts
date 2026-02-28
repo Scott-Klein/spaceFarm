@@ -1,11 +1,22 @@
-import { Scene, Mesh, Vector3, StandardMaterial, Color3, CreateBox } from '@babylonjs/core';
-import { GameObject } from './GameObject';
-import { FlightSystem } from './FlightSystem';
-import type { FlightInput } from './FlightSystem';
+import {
+  Scene,
+  Mesh,
+  Vector3,
+  StandardMaterial,
+  Color3,
+  CreateBox,
+  TransformNode,
+} from '@babylonjs/core';
+import GameObject from '../GameObject';
+import FlightSystem, { type FlightInput } from '../FlightSystem';
+import TrailMeshSystem, { type IEngineTrail } from './TrailMeshSystem';
 
-export class Spaceship extends GameObject {
+export default class Spaceship extends GameObject {
   private color: Color3;
   private flightSystem: FlightSystem;
+  protected scene: Scene | null = null;
+  protected engineTrail: IEngineTrail | null = null;
+  protected engineNodes: TransformNode[] = [];
 
   constructor(id: string, color: Color3) {
     super(id);
@@ -24,7 +35,45 @@ export class Spaceship extends GameObject {
   }
 
   create(scene: Scene): void {
-    // Create a simple spaceship shape (can be replaced with a model later)
+    this.scene = scene;
+    this.mesh = this.createPlaceholderMesh();
+
+    if (this.mesh) {
+      this.initializeMesh(this.mesh);
+      this.createDefaultEngineNodes();
+      this.engineTrail = new TrailMeshSystem(this.engineNodes, scene);
+    }
+  }
+
+  protected initializeMesh(mesh: Mesh): void {
+    mesh.name = this.id;
+
+    // Apply material
+    const material = new StandardMaterial(`${this.id}-material`, this.scene!);
+    material.diffuseColor = this.color;
+    material.specularColor = new Color3(0.2, 0.2, 0.2);
+    mesh.material = material;
+
+    // Sync transform
+    mesh.position = this.position;
+    mesh.rotation = this.rotation;
+  }
+
+  protected createDefaultEngineNodes(): void {
+    if (!this.mesh || !this.scene) return;
+
+    // Create a single engine node behind the ship
+    const engineNode = new TransformNode(`${this.id}-engine`, this.scene);
+    engineNode.parent = this.mesh;
+    engineNode.position = new Vector3(0, 0, -1); // Behind the ship
+    this.engineNodes.push(engineNode);
+  }
+
+  getEngineNodes(): TransformNode[] {
+    return this.engineNodes;
+  }
+
+  private createPlaceholderMesh(): Mesh | null {
     const body = CreateBox(`${this.id}-body`, { width: 1, height: 0.5, depth: 2 });
     const cockpit = CreateBox(`${this.id}-cockpit`, { width: 0.8, height: 0.6, depth: 0.8 });
     cockpit.position.y = 0.5;
@@ -38,8 +87,7 @@ export class Spaceship extends GameObject {
     rightWing.position.x = 1.5;
     rightWing.position.z = -0.3;
 
-    // Merge all parts into one mesh
-    this.mesh = Mesh.MergeMeshes(
+    return Mesh.MergeMeshes(
       [body, cockpit, leftWing, rightWing],
       true,
       false,
@@ -47,20 +95,6 @@ export class Spaceship extends GameObject {
       false,
       true,
     );
-
-    if (this.mesh) {
-      this.mesh.name = this.id;
-
-      // Apply material
-      const material = new StandardMaterial(`${this.id}-material`, scene);
-      material.diffuseColor = this.color;
-      material.specularColor = new Color3(0.2, 0.2, 0.2);
-      this.mesh.material = material;
-
-      // Set initial position
-      this.mesh.position = this.position;
-      this.mesh.rotation = this.rotation;
-    }
   }
 
   protected handleControlInput(input: {
@@ -87,6 +121,9 @@ export class Spaceship extends GameObject {
   update(deltaTime: number): void {
     // First handle controller input via parent
     super.update(deltaTime);
+
+    // Update engine trail
+    this.engineTrail?.update(deltaTime);
   }
 
   getFlightSystem(): FlightSystem {

@@ -1,9 +1,8 @@
-import { Controller } from '../Controller';
-import type { ControlInput } from '../Controller';
+import Controller, { type ControlInput } from '../Controller';
 import type { FlightInput } from '../FlightSystem';
-import { InputManager } from '../InputManager';
+import InputManager from '../InputManager';
 
-export class HumanController extends Controller {
+export default class HumanController extends Controller {
   private inputManager: InputManager;
   private currentThrottle: number = 0;
   private throttleChangeRate: number = 0.00005; // Throttle changes per frame (at 60fps = 0.6 per second)
