@@ -9,7 +9,8 @@ import {
 } from '@babylonjs/core';
 import GameObject from '../GameObject';
 import FlightSystem, { type FlightInput } from '../FlightSystem';
-import TrailMeshSystem, { type IEngineTrail } from './TrailMeshSystem';
+import { type IEngineTrail } from './TrailMeshSystem';
+import BillboardExhaustSystem from './BillboardExhaustSystem';
 
 export default class Spaceship extends GameObject {
   private color: Color3;
@@ -41,7 +42,7 @@ export default class Spaceship extends GameObject {
     if (this.mesh) {
       this.initializeMesh(this.mesh);
       this.createDefaultEngineNodes();
-      this.engineTrail = new TrailMeshSystem(this.engineNodes, scene);
+      this.engineTrail = new BillboardExhaustSystem(this.engineNodes, scene);
     }
   }
 
@@ -122,8 +123,8 @@ export default class Spaceship extends GameObject {
     // First handle controller input via parent
     super.update(deltaTime);
 
-    // Update engine trail
-    this.engineTrail?.update(deltaTime);
+    // Update engine trail with current throttle
+    this.engineTrail?.update(deltaTime, this.getThrustPercent());
   }
 
   getFlightSystem(): FlightSystem {

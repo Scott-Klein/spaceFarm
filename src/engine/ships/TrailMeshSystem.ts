@@ -10,7 +10,7 @@ import {
 } from '@babylonjs/core';
 
 export interface IEngineTrail {
-  update(deltaTime: number): void;
+  update(deltaTime: number, throttle: number): void;
   dispose(): void;
 }
 
@@ -56,8 +56,9 @@ export default class TrailMeshSystem implements IEngineTrail {
         const nx = x / size;
         const ny = y / size;
 
-        // Distance from center (0 at center, 1 at edge)
-        const centerDist = Math.abs(nx - 0.5) * 2;
+        // TrailMesh UVs: X = along length, Y = across width
+        // Distance from center across width (0 at center, 1 at edges)
+        const centerDist = Math.abs(ny - 0.5) * 2;
 
         // Core intensity - sharp falloff from center
         const core = Math.pow(1 - centerDist, 3);
@@ -65,13 +66,13 @@ export default class TrailMeshSystem implements IEngineTrail {
         // Outer glow - softer falloff
         const glow = Math.pow(1 - centerDist, 1.5);
 
-        // Length fade (ny = 0 is hot end, 1 is tail)
-        const lengthFade = Math.pow(1 - ny, 0.8);
+        // Length fade along X (nx = 0 is hot end near engine, 1 is tail)
+        const lengthFade = Math.pow(1 - nx, 0.8);
 
         // Color: white core → orange → red along length
         const r = Math.min(255, (core * 255 + glow * 200) * lengthFade);
-        const g = Math.min(255, (core * 200 + glow * 100) * lengthFade * (1 - ny * 0.5));
-        const b = Math.min(255, core * 180 * lengthFade * (1 - ny));
+        const g = Math.min(255, (core * 200 + glow * 100) * lengthFade * (1 - nx * 0.5));
+        const b = Math.min(255, core * 180 * lengthFade * (1 - nx));
         const a = glow * lengthFade * 255;
 
         const idx = (y * size + x) * 4;
@@ -89,7 +90,7 @@ export default class TrailMeshSystem implements IEngineTrail {
     return texture;
   }
 
-  update(_deltaTime: number): void {
+  update(_deltaTime: number, _throttle: number): void {
     // TrailMesh updates automatically with the mesh it's attached to
   }
 

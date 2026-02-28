@@ -1,7 +1,7 @@
 import { Scene, Color3, Mesh, ImportMeshAsync, CreateBox } from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import Spaceship from './Spaceship';
-import TrailMeshSystem from './TrailMeshSystem';
+import BillboardExhaustSystem from './BillboardExhaustSystem';
 
 export default class CapitalShip extends Spaceship {
   private modelPath: string;
@@ -21,7 +21,7 @@ export default class CapitalShip extends Spaceship {
 
     // Create default engine node for placeholder, then load actual model
     this.createDefaultEngineNodes();
-    this.engineTrail = new TrailMeshSystem(this.engineNodes, scene);
+    this.engineTrail = new BillboardExhaustSystem(this.engineNodes, scene);
 
     // Load the actual model asynchronously in the background
     this.loadModelAsync(scene);
@@ -105,7 +105,7 @@ export default class CapitalShip extends Spaceship {
           }
 
           // Create engine trails for all engine nodes
-          this.engineTrail = new TrailMeshSystem(this.engineNodes, scene);
+          this.engineTrail = new BillboardExhaustSystem(this.engineNodes, scene);
         }
       }
     } catch (error) {
