@@ -6,6 +6,7 @@
       class="absolute left-0 top-0 h-full w-full"
     ></canvas>
 
+    <ShipStatus />
     <ShipUi />
     <CameraToggle />
   </div>
@@ -16,8 +17,9 @@ import { ref } from 'vue';
 import { useBabylonScene } from '@/composables/useBabylonScene';
 import { GameEngine, SceneBuilder } from '@/engine';
 import { useGameStore } from '@/stores/gameState';
-import ShipUi from '@/components/ui/ShipUi.vue';
+import ShipUi from '@/components/ui/ship/ShipUi.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';
+import ShipStatus from '@/components/ui/ship/ShipStatus.vue';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const gameStore = useGameStore();
@@ -42,12 +44,7 @@ useBabylonScene({
     });
 
     const sceneBuilder = new SceneBuilder(gameEngine, scene);
-    sceneBuilder.buildScene({
-      asteroidCount: 80,
-      spaceRadius: 150,
-      landmarkCount: 5,
-      aiShipCount: 3,
-    });
+    sceneBuilder.buildScene();
   },
 });
 </script>

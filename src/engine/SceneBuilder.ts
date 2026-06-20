@@ -25,7 +25,7 @@ export default class SceneBuilder {
    * Build the complete game scene with default or custom configuration
    */
   buildScene(config: SceneConfig = {}): void {
-    const { asteroidCount = 80, spaceRadius = 150, landmarkCount = 5, aiShipCount = 3 } = config;
+    const { asteroidCount = 80, spaceRadius = 150, landmarkCount = 5, aiShipCount = 15 } = config;
 
     this.createAsteroidField(asteroidCount, spaceRadius);
     this.createLandmarks(landmarkCount, spaceRadius);
