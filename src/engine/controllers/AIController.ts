@@ -1,7 +1,8 @@
-import { Vector3 } from '@babylonjs/core';
+import { Quaternion, Vector3 } from '@babylonjs/core';
 import Controller, { type ControlInput } from '../Controller';
 import type { FlightInput } from '../FlightSystem';
 import GameObject from '../GameObject';
+import useLogStore from '@/stores/logs';
 
 export type AIBehavior = 'idle' | 'patrol' | 'follow' | 'flee';
 
@@ -14,10 +15,13 @@ export default class AIController extends Controller {
   private baseThrottle = 0.5;
   private idleTime = 0;
   private idleMaxTime = 3000; // 3 seconds
+  logger: ReturnType<typeof useLogStore>;
+  lastInput: FlightInput = {};
 
   constructor(behavior: AIBehavior = 'idle') {
     super();
     this.behavior = behavior;
+    this.logger = useLogStore();
   }
 
   setBehavior(behavior: AIBehavior): void {
@@ -79,22 +83,18 @@ export default class AIController extends Controller {
     // If close enough to patrol point, move to next one
     if (distance < 5) {
       this.currentPatrolIndex = (this.currentPatrolIndex + 1) % this.patrolPoints.length;
+      this.logger.log('Son of a bitch! ' + distance);
     }
 
-    // Calculate desired direction and convert to flight controls
-    const desiredDirection = direction.normalize();
-
-    // Simple yaw control based on horizontal angle difference
-    const yaw = Math.atan2(desiredDirection.x, desiredDirection.z);
-    const pitch = Math.asin(desiredDirection.y);
-
+    const { yaw, pitch } = this.computeSteering(targetPoint);
+    const gain = 2;
     const flightInput: FlightInput = {
       thrust: this.baseThrottle,
-      pitch: Math.max(-1, Math.min(1, pitch * 2)),
+      pitch: Math.max(-1, Math.min(1, pitch * gain)),
       roll: 0,
-      yaw: Math.max(-1, Math.min(1, yaw * 0.5)),
+      yaw: Math.max(-1, Math.min(1, yaw * gain)),
     };
-
+    this.lastInput = flightInput; // store it for debugging
     return { flight: flightInput };
   }
 
@@ -160,5 +160,20 @@ export default class AIController extends Controller {
       const z = center.z + Math.sin(angle) * this.patrolRadius;
       this.patrolPoints.push(new Vector3(x, center.y, z));
     }
+  }
+
+  private computeSteering(targetPos: Vector3): { yaw: number; pitch: number } {
+    const obj = this.controlledObject!;
+    const toTarget = targetPos.subtract(obj.position).normalize();
+
+    // World direction -> ship-local direction
+    const orientation = Quaternion.FromEulerVector(obj.rotation);
+    const localDir = new Vector3();
+    toTarget.rotateByQuaternionToRef(Quaternion.Inverse(orientation), localDir);
+
+    // Babylon left-handed: +Z forward, +X right, +Y up
+    const yaw = Math.atan2(localDir.x, localDir.z);
+    const pitch = Math.atan2(localDir.y, Math.hypot(localDir.x, localDir.z));
+    return { yaw, pitch };
   }
 }

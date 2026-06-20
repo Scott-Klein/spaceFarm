@@ -4,6 +4,7 @@ import Spaceship from './ships/Spaceship';
 import HumanController from './controllers/HumanController';
 import AIController from './controllers/AIController';
 import CapitalShip from './ships/CapitalShip';
+import useLogStore from '@/stores/logs';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -15,10 +16,13 @@ export interface SceneConfig {
 export default class SceneBuilder {
   private gameEngine: GameEngine;
   private scene: Scene;
+  log: ReturnType<typeof useLogStore>;
 
   constructor(gameEngine: GameEngine, scene: Scene) {
     this.gameEngine = gameEngine;
     this.scene = scene;
+    this.log = useLogStore();
+    this.log.log('finished making scene builder')
   }
 
   /**

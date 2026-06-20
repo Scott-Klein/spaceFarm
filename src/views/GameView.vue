@@ -1,10 +1,13 @@
 <template>
-  <div class="relative h-full w-full select-none overflow-hidden">
+  <div class="flex h-full w-full select-none">
     <canvas
       ref="canvasRef"
       touch-action="none"
-      class="absolute left-0 top-0 h-full w-full"
+      class="h-full flex-5 min-h-0 min-w-0 outline-none"
     ></canvas>
+    <div class="flex-1">
+      <LogWindow />
+    </div>
 
     <ShipStatus />
     <ShipUi />
@@ -17,6 +20,7 @@ import { ref } from 'vue';
 import { useBabylonScene } from '@/composables/useBabylonScene';
 import { GameEngine, SceneBuilder } from '@/engine';
 import { useGameStore } from '@/stores/gameState';
+import LogWindow from '@/components/LogWindow.vue';
 import ShipUi from '@/components/ui/ship/ShipUi.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';
 import ShipStatus from '@/components/ui/ship/ShipStatus.vue';
