@@ -11,7 +11,8 @@ export default class AIController extends Controller {
   private target: GameObject | null = null;
   private patrolPoints: Vector3[] = [];
   private currentPatrolIndex = 0;
-  private patrolRadius = 15;
+  private patrolRadius = 215;
+  private patrolSatisfactiondistance = 1;
   private baseThrottle = 0.5;
   private idleTime = 0;
   private idleMaxTime = 3000; // 3 seconds
@@ -81,7 +82,7 @@ export default class AIController extends Controller {
     const distance = direction.length();
 
     // If close enough to patrol point, move to next one
-    if (distance < 5) {
+    if (distance < this.patrolSatisfactiondistance) {
       this.currentPatrolIndex = (this.currentPatrolIndex + 1) % this.patrolPoints.length;
       this.logger.log('Son of a bitch! ' + distance);
     }
