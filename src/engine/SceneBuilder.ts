@@ -79,7 +79,7 @@ export default class SceneBuilder {
     const playerShip = new CapitalShip(
       'player-capital',
       new Color3(0.2, 0.6, 1),
-      '/models/MilCap.glb',
+      '/models/MilCap2.glb',
     );
     playerShip.position = new Vector3(0, 0, 0);
 

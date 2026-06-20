@@ -1,114 +1,88 @@
-import {
-  Color4,
-  ParticleSystem,
-  Texture,
-  Vector3,
-  type Scene,
-  type TransformNode,
-} from '@babylonjs/core';
+import { Color4, ParticleSystem, Texture, Vector3, type Scene, type TransformNode } from '@babylonjs/core';
 import type { IEngineTrail } from './TrailMeshSystem';
+import {
+  type EngineExhaustConfig,
+  getPresetForNode,
+  cloneConfig,
+  ENGINE_PRESETS,
+} from './EngineExhaustConfigs';
 
-export interface EngineExhaustOptions {
-  capacity?: number;
-  emitRate?: number;
-  minLifeTime?: number;
-  maxLifeTime?: number;
-  minSize?: number;
-  maxSize?: number;
-  minSpeed?: number;
-  maxSpeed?: number;
+/**
+ * Tracked data for each engine's particle system
+ */
+interface EngineEntry {
+  node: TransformNode;
+  particleSystem: ParticleSystem;
+  config: EngineExhaustConfig;
 }
 
 /**
  * Particle-based engine exhaust system.
  * Creates particle emitters for each engine node that respond to throttle.
+ * Automatically selects presets based on engine node names (ENGINE_SMALL, etc.)
+ * Supports runtime config updates for gameplay effects.
  */
 export default class EngineExhaustSystem implements IEngineTrail {
-  private particleSystems: ParticleSystem[] = [];
-  private baseEmitRate: number;
-  private baseMinPower: number;
-  private baseMaxPower: number;
-  private baseMinSize: number;
-  private baseMaxSize: number;
+  private engines: EngineEntry[] = [];
+  private scene: Scene;
+  private currentThrottle = 0;
 
-  constructor(engineNodes: TransformNode[], scene: Scene, options: EngineExhaustOptions = {}) {
-    const opts = {
-      capacity: 500,
-      emitRate: 150,
-      minLifeTime: 0.2,
-      maxLifeTime: 0.5,
-      minSize: 0.1,
-      maxSize: 0.3,
-      minSpeed: 2,
-      maxSpeed: 5,
-      ...options,
-    };
-
-    this.baseEmitRate = opts.emitRate;
-    this.baseMinPower = opts.minSpeed;
-    this.baseMaxPower = opts.maxSpeed;
-    this.baseMinSize = opts.minSize;
-    this.baseMaxSize = opts.maxSize;
+  /**
+   * Create exhaust system for engine nodes.
+   * @param engineNodes - Transform nodes where particles emit from
+   * @param scene - Babylon scene
+   * @param configOverrides - Optional per-node config overrides (by index or node name)
+   */
+  constructor(
+    engineNodes: TransformNode[],
+    scene: Scene,
+    configOverrides?: Map<string | number, Partial<EngineExhaustConfig>>,
+  ) {
+    this.scene = scene;
 
     // Create a particle system for each engine node
     engineNodes.forEach((node, index) => {
-      const ps = this.createExhaustParticles(node, scene, opts, index);
-      this.particleSystems.push(ps);
+      // Get base config from preset based on node name
+      const baseConfig = cloneConfig(getPresetForNode(node.name));
+
+      // Apply any overrides
+      const override = configOverrides?.get(index) ?? configOverrides?.get(node.name);
+      const config = override ? { ...baseConfig, ...override } : baseConfig;
+
+      const ps = this.createParticleSystem(node, config, index);
+      this.engines.push({ node, particleSystem: ps, config });
       ps.start();
     });
   }
 
-  private createExhaustParticles(
+  private createParticleSystem(
     emitterNode: TransformNode,
-    scene: Scene,
-    opts: Required<EngineExhaustOptions>,
+    config: EngineExhaustConfig,
     index: number,
   ): ParticleSystem {
-    const ps = new ParticleSystem(`exhaust_${index}`, opts.capacity, scene);
+    const ps = new ParticleSystem(`exhaust_${emitterNode.name}_${index}`, config.capacity, this.scene);
 
-    // Use flare texture for glow effect
-    ps.particleTexture = new Texture('https://assets.babylonjs.com/textures/flare.png', scene);
+    // Flare texture for glow
+    ps.particleTexture = new Texture('https://assets.babylonjs.com/textures/flare.png', this.scene);
 
-    // Emission from the engine node
+    // Emission from engine node
     ps.emitter = emitterNode;
     ps.minEmitBox = new Vector3(0, 0, 0);
     ps.maxEmitBox = new Vector3(0, 0, 0);
 
-    // Direction - emits backward (-Z in local space)
-    ps.direction1 = new Vector3(-0.1, -0.1, -1);
-    ps.direction2 = new Vector3(0.1, 0.1, -1);
+    // Direction - emits backward (-Z) with spread
+    const spread = config.spread;
+    ps.direction1 = new Vector3(-spread, -spread, -1);
+    ps.direction2 = new Vector3(spread, spread, -1);
 
     // Particles respect emitter rotation
     ps.isLocal = true;
 
-    // Speeds
-    ps.minEmitPower = opts.minSpeed;
-    ps.maxEmitPower = opts.maxSpeed;
+    // Apply config values
+    this.applyConfigToParticleSystem(ps, config);
 
-    // Lifetime
-    ps.minLifeTime = opts.minLifeTime;
-    ps.maxLifeTime = opts.maxLifeTime;
-
-    // Size
-    ps.minSize = opts.minSize;
-    ps.maxSize = opts.maxSize;
-
-    // Size over lifetime - start small, grow slightly, shrink at end
-    ps.addSizeGradient(0.0, 0.5);
-    ps.addSizeGradient(0.3, 1.0);
-    ps.addSizeGradient(1.0, 0.2);
-
-    // Color gradient: white core → blue → orange → fade out
-    ps.addColorGradient(0.0, new Color4(1, 1, 1, 1));
-    ps.addColorGradient(0.2, new Color4(0.5, 0.7, 1, 0.9));
-    ps.addColorGradient(0.5, new Color4(1, 0.5, 0.2, 0.6));
-    ps.addColorGradient(1.0, new Color4(1, 0.3, 0.1, 0));
-
-    // Additive blend mode for glow
+    // Additive blend for glow
     ps.blendMode = ParticleSystem.BLENDMODE_ADD;
-
-    // Emission rate
-    ps.emitRate = opts.emitRate;
 
     // No gravity in space
     ps.gravity = new Vector3(0, 0, 0);
@@ -120,23 +94,123 @@ export default class EngineExhaustSystem implements IEngineTrail {
     return ps;
   }
 
+  private applyConfigToParticleSystem(ps: ParticleSystem, config: EngineExhaustConfig): void {
+    ps.emitRate = config.emitRate;
+    ps.minEmitPower = config.minSpeed;
+    ps.maxEmitPower = config.maxSpeed;
+    ps.minLifeTime = config.minLifeTime;
+    ps.maxLifeTime = config.maxLifeTime;
+    ps.minSize = config.minSize;
+    ps.maxSize = config.maxSize;
+
+    // Clear existing gradients
+    ps.getSizeGradients()?.splice(0);
+    ps.getColorGradients()?.splice(0);
+
+    // Apply size gradients
+    for (const sg of config.sizeGradients) {
+      ps.addSizeGradient(sg.gradient, sg.size);
+    }
+
+    // Apply color gradients (will be updated by throttle)
+    for (const cg of config.colorGradients) {
+      ps.addColorGradient(cg.gradient, cg.color.clone());
+    }
+  }
+
+  /**
+   * Update exhaust based on throttle (0-1).
+   * Scales emission rate, power, size, and interpolates colors.
+   */
   update(_deltaTime: number, throttle: number): void {
     const t = Math.max(0, Math.min(1, throttle));
+    this.currentThrottle = t;
 
-    for (const ps of this.particleSystems) {
-      ps.emitRate = this.baseEmitRate * t;
-      ps.minEmitPower = this.baseMinPower * (0.5 + t * 0.5);
-      ps.maxEmitPower = this.baseMaxPower * (0.5 + t * 0.5);
-      ps.minSize = this.baseMinSize * (0.5 + t * 0.5);
-      ps.maxSize = this.baseMaxSize * (0.5 + t * 0.5);
+    for (const engine of this.engines) {
+      const { particleSystem: ps, config } = engine;
+
+      // Scale emission and power by throttle
+      ps.emitRate = config.emitRate * t;
+      ps.minEmitPower = config.minSpeed * (0.5 + t * 0.5);
+      ps.maxEmitPower = config.maxSpeed * (0.5 + t * 0.5);
+      ps.minSize = config.minSize * (0.5 + t * 0.5);
+      ps.maxSize = config.maxSize * (0.5 + t * 0.5);
+
+      // Interpolate colors based on throttle
+      this.updateColors(ps, config, t);
     }
+  }
+
+  private updateColors(ps: ParticleSystem, config: EngineExhaustConfig, throttle: number): void {
+    const gradients = ps.getColorGradients();
+    if (!gradients) return;
+
+    // Lerp between low and high throttle colors
+    for (let i = 0; i < gradients.length && i < config.colorGradients.length; i++) {
+      const low = config.colorGradients[i].color;
+      const high = config.highThrottleColorGradients[i]?.color ?? low;
+
+      const lerped = Color4.Lerp(low, high, throttle);
+      gradients[i].color1 = lerped;
+      // color2 is for gradient ranges - set same as color1 for solid gradient points
+      if (gradients[i].color2) {
+        gradients[i].color2 = lerped;
+      }
+    }
+  }
+
+  /**
+   * Update config for a specific engine at runtime.
+   * Useful for damage effects, upgrades, etc.
+   */
+  setEngineConfig(engineIndex: number, configUpdate: Partial<EngineExhaustConfig>): void {
+    const engine = this.engines[engineIndex];
+    if (!engine) return;
+
+    // Merge update into existing config
+    Object.assign(engine.config, configUpdate);
+
+    // Re-apply to particle system
+    this.applyConfigToParticleSystem(engine.particleSystem, engine.config);
+
+    // Re-apply current throttle
+    this.update(0, this.currentThrottle);
+  }
+
+  /**
+   * Update config for all engines at runtime.
+   */
+  setAllEngineConfigs(configUpdate: Partial<EngineExhaustConfig>): void {
+    for (let i = 0; i < this.engines.length; i++) {
+      this.setEngineConfig(i, configUpdate);
+    }
+  }
+
+  /**
+   * Get the current config for an engine (for inspection/modification).
+   */
+  getEngineConfig(engineIndex: number): EngineExhaustConfig | null {
+    return this.engines[engineIndex]?.config ?? null;
+  }
+
+  /**
+   * Get number of engines in this system.
+   */
+  getEngineCount(): number {
+    return this.engines.length;
   }
 
   dispose(): void {
-    for (const ps of this.particleSystems) {
-      ps.stop();
-      ps.dispose();
+    for (const engine of this.engines) {
+      engine.particleSystem.stop();
+      engine.particleSystem.dispose();
     }
-    this.particleSystems = [];
+    this.engines = [];
   }
 }
+
+/**
+ * Re-export config utilities for convenience
+ */
+export { ENGINE_PRESETS, getPresetForNode, cloneConfig, withColorScheme } from './EngineExhaustConfigs';
+export type { EngineExhaustConfig } from './EngineExhaustConfigs';
