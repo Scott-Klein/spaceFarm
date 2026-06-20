@@ -31,6 +31,10 @@ export default class CameraController {
 
   setTarget(gameObject: GameObject | null): void {
     this.target = gameObject;
+    if (this.target) {
+      const mesh = this.target.getMesh();
+      if (mesh) this.camera.setTarget(mesh);
+    }
   }
 
   getTarget(): GameObject | null {
@@ -69,13 +73,9 @@ export default class CameraController {
         // Match ship's roll by updating camera's up vector
         this.camera.upVector = targetMesh.up.clone();
       }
-    } else if (this.target && this.cameraMode === 'arcRotate') {
-      // ArcRotate mode: smoothly follow the target
-      this.camera.target = this.target.position;
-      // Reset up vector to world up for arc rotate mode
-      this.camera.upVector = Vector3.Up();
     }
   }
+
   getCamera(): ArcRotateCamera {
     return this.camera;
   }
@@ -124,5 +124,6 @@ export default class CameraController {
     // Make ArcRotateCamera the active camera and enable controls
     this.scene.activeCamera = this.camera;
     this.camera.attachControl(this.scene.getEngine().getRenderingCanvas(), true);
+    this.camera.upVector = Vector3.Up();
   }
 }
