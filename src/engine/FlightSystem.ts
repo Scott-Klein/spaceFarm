@@ -58,10 +58,7 @@ export default class FlightSystem {
     }
   }
 
-  update(deltaTime: number, input?: FlightInput): { position: Vector3; rotation: Vector3 } {
-    // Normalize deltaTime (assuming 60fps as baseline)
-    const dt = Math.min(deltaTime / 16.67, 2);
-
+  update(input?: FlightInput): { position: Vector3; rotation: Vector3 } {
     if (input) {
       // Update thrust based on input
       if (input.thrust !== undefined) {
@@ -72,13 +69,13 @@ export default class FlightSystem {
       // Apply rotational inputs with inertia (mass/rotational inertia affects how quickly we spin)
       const rotationalForce = 1.0 / this.rotationalInertia;
       if (input.pitch) {
-        this.angularVelocity.x += input.pitch * this.pitchSpeed * rotationalForce * dt;
+        this.angularVelocity.x += input.pitch * this.pitchSpeed * rotationalForce;
       }
       if (input.roll) {
-        this.angularVelocity.z += input.roll * this.rollSpeed * rotationalForce * dt;
+        this.angularVelocity.z += input.roll * this.rollSpeed * rotationalForce;
       }
       if (input.yaw) {
-        this.angularVelocity.y += input.yaw * this.yawSpeed * rotationalForce * dt;
+        this.angularVelocity.y += input.yaw * this.yawSpeed * rotationalForce;
       }
 
       // Air brake
@@ -108,9 +105,9 @@ export default class FlightSystem {
 
     // Update orientation based on angular velocity
     const rotationChange = Quaternion.RotationYawPitchRoll(
-      this.angularVelocity.y * dt,
-      this.angularVelocity.x * dt,
-      this.angularVelocity.z * dt,
+      this.angularVelocity.y,
+      this.angularVelocity.x,
+      this.angularVelocity.z,
     );
     this.orientation.multiplyInPlace(rotationChange);
     this.orientation.normalize();

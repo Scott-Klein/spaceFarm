@@ -54,17 +54,27 @@ export default class GameEngine {
     });
   }
 
+  /**
+   * Called on every frame to make sure everything ticks
+   * @param deltaTime time since last call (certainly the last frame)
+   */
   private update(deltaTime: number): void {
-    // Update input
-    this.inputManager.update();
-
-    // Update all game objects
-    for (const gameObject of this.gameObjects.values()) {
-      gameObject.update(deltaTime);
+    let accumulator = deltaTime;
+    while (accumulator > 0) {
+      this.updatePhysics();
+      accumulator -= 50;
     }
 
-    // Update camera
-    this.cameraController.update();
+    accumulator = 0
+
+    this.updateRender(deltaTime);
+  }
+
+  private updatePhysics(): void {
+    // Update all game objects
+    for (const gameObject of this.gameObjects.values()) {
+      gameObject.updatePhysics();
+    }
 
     // Push state updates to store if callback is registered (Game → UI)
     if (this.stateUpdateCallback && this.selectedObject instanceof Spaceship) {
@@ -78,6 +88,26 @@ export default class GameEngine {
         yaw: angles.yaw,
       });
     }
+  }
+
+  /**
+   * call once per frame, handling dispatching calls to all entities that require action on each frame.
+   * NOT for physics work. Physics work is to be done in updatePhysics.
+   * Anything called update() without specifying is every frame.
+   * Systems that require both kinds of handling will have the special handlers.
+   * @param deltaTime time since the last frame in ms
+   */
+  private updateRender(deltaTime: number): void {
+    // Read input state every frame, wouldn't do it in physics because we can multiple ticks per frame and it would waste
+    this.inputManager.update();
+
+    // Update all game objects
+    for (const gameObject of this.gameObjects.values()) {
+      gameObject.updateRender(deltaTime);
+    }
+
+    // Update camera
+    this.cameraController.update();
   }
 
   addGameObject(gameObject: GameObject): void {

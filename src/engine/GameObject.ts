@@ -1,6 +1,7 @@
 import { Mesh, Scene, Vector3 } from '@babylonjs/core';
 import type Controller from './Controller';
 import type { FlightInput } from './FlightSystem';
+import type { ControlInput } from './Controller';
 
 export default abstract class GameObject {
   protected mesh: Mesh | null = null;
@@ -8,6 +9,7 @@ export default abstract class GameObject {
   public rotation: Vector3;
   public id: string;
   private controller: Controller | null = null;
+  private lastInput: ControlInput | null = null;
 
   constructor(id: string) {
     this.id = id;
@@ -33,6 +35,26 @@ export default abstract class GameObject {
     }
   }
 
+  updateRender(deltaTime: number): void {
+    // Update mesh position/rotation
+    if (this.mesh) {
+      this.mesh.position = this.position;
+      this.mesh.rotation = this.rotation;
+    }
+    if (this.controller) {
+      this.lastInput = this.controller.update(deltaTime);
+    }
+  }
+
+  updatePhysics(): void {
+    // Get input from controller if possessed
+    if (this.controller) {
+      if (this.lastInput) {
+        this.handleControlInput(this.lastInput);
+      }
+    }
+  }
+
   // Override this method in subclasses to handle control input differently
   protected handleControlInput(input: {
     movement?: Vector3;
@@ -46,10 +68,6 @@ export default abstract class GameObject {
     if (input.rotation) {
       this.rotation.addInPlace(input.rotation);
     }
-  }
-
-  move(direction: Vector3, speed: number): void {
-    this.position.addInPlace(direction.scale(speed));
   }
 
   // Controller possession system

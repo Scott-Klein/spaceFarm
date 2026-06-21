@@ -94,6 +94,9 @@ export default class InputManager {
     this.commandCallbacks.set(command, callback);
   }
 
+  /**
+   * Call every frame, not physics tick
+   */
   update(): void {
     // Execute callbacks for active commands (held keys)
     for (const [command, callback] of this.commandCallbacks.entries()) {

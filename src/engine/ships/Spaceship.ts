@@ -105,7 +105,7 @@ export default class Spaceship extends GameObject {
   }): void {
     // Handle flight system input if provided
     if (input.flight) {
-      const flightUpdate = this.flightSystem.update(16.67, input.flight);
+      const flightUpdate = this.flightSystem.update(input.flight);
       this.position.addInPlace(flightUpdate.position);
       this.rotation = flightUpdate.rotation;
     }
