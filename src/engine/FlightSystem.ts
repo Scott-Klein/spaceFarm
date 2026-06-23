@@ -8,6 +8,11 @@ export interface FlightInput {
   brake?: boolean; // Air brake
 }
 
+const TUNE_MASS = 1;
+const TUNE_ROTATION_DRAG = 0.99
+const TUNE_ROTATIONAL_INTERTIA = 1;
+const TUNE_THRUST = 0.1
+
 export default class FlightSystem {
   // Physics properties
   private velocity: Vector3 = Vector3.Zero();
@@ -19,11 +24,11 @@ export default class FlightSystem {
   private currentThrust: number = 0;
 
   // Inertia properties
-  private mass: number = 100.0;
+  private _mass: number = 100.0;
   private rotationalInertia: number = 145.0; // Resistance to rotation changes
 
   // Drag and stability
-  private drag: number = 0.58;
+  private drag: number = 0.997;
 
   constructor(
     config?: Partial<{
@@ -36,7 +41,7 @@ export default class FlightSystem {
     if (config) {
       this.maxThrust = config.maxThrust ?? this.maxThrust;
       this.drag = config.drag ?? this.drag;
-      this.mass = config.mass ?? this.mass;
+      this._mass = config.mass ?? this._mass;
       this.rotationalInertia = config.rotationalInertia ?? this.rotationalInertia;
     }
   }
@@ -50,7 +55,7 @@ export default class FlightSystem {
       }
 
       // Apply rotational inputs with inertia (mass/rotational inertia affects how quickly we spin)
-      const rotationalForce = 1.0 / this.rotationalInertia;
+      const rotationalForce = 1.0 / (this.mass * this.rotationalInertia * TUNE_ROTATIONAL_INTERTIA);
       if (input.pitch) {
         this.angularVelocity.x += input.pitch * rotationalForce;
       }
@@ -61,7 +66,7 @@ export default class FlightSystem {
         this.angularVelocity.y += input.yaw * rotationalForce;
       }
 
-      // Air brake
+      // Air brake - dont think i'll use it
       if (input.brake) {
         this.velocity.scaleInPlace(0.95);
         this.currentThrust *= 0.9;
@@ -72,14 +77,14 @@ export default class FlightSystem {
     // This is key - thrust applies in ship's forward direction, not movement direction
     if (this.currentThrust > 0) {
       const forward = this.getForwardVector();
-      const thrustForce = forward.scale(this.currentThrust / this.mass);
+      const thrustForce = forward.scale((this.currentThrust / this.mass) * TUNE_THRUST);
       this.velocity.addInPlace(thrustForce);
     }
 
     // Apply drag in world space (simple uniform drag for now)
     this.velocity.scaleInPlace(this.drag);
 
-    this.angularVelocity.scaleInPlace(this.drag);
+    this.angularVelocity.scaleInPlace(this.drag * TUNE_ROTATION_DRAG);
 
     // Update orientation based on angular velocity
     const rotationChange = Quaternion.RotationYawPitchRoll(
@@ -104,6 +109,11 @@ export default class FlightSystem {
     const forward = new Vector3(0, 0, 1);
     return forward.applyRotationQuaternion(this.orientation);
   }
+
+  public get mass() : number {
+    return this._mass * TUNE_MASS
+  }
+
 
   private getLocalVelocity(): Vector3 {
     // Convert world velocity to local space (relative to ship orientation)

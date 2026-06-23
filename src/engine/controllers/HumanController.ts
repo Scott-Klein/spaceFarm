@@ -5,7 +5,7 @@ import InputManager from '../InputManager';
 export default class HumanController extends Controller {
   private inputManager: InputManager;
   private currentThrottle: number = 0;
-  private throttleChangeRate: number = 0.00005; // Throttle changes per frame (at 60fps = 0.6 per second)
+  private throttleChangeRate: number = 0.01; // Throttle changes per frame (at 60fps = 0.6 per second)
 
   constructor(inputManager: InputManager) {
     super();

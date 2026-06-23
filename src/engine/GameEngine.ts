@@ -17,7 +17,7 @@ export type StateUpdateCallback = (state: {
 }) => void;
 
 export default class GameEngine {
-  private readonly TICK_RATE = 10;
+  private readonly TICK_RATE = 120; // 120hz phyics rate no matter our fps
   private readonly DELTA_RATE: number;
   private scene: Scene;
   private cameraController: CameraController;
