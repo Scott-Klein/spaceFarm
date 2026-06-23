@@ -19,22 +19,6 @@ export default abstract class GameObject {
 
   abstract create(scene: Scene): void;
 
-  update(deltaTime: number): void {
-    // Get input from controller if possessed
-    if (this.controller) {
-      const input = this.controller.update(deltaTime);
-      if (input) {
-        this.handleControlInput(input);
-      }
-    }
-
-    // Update mesh position/rotation
-    if (this.mesh) {
-      this.mesh.position = this.position;
-      this.mesh.rotation = this.rotation;
-    }
-  }
-
   updateRender(deltaTime: number): void {
     // Update mesh position/rotation
     if (this.mesh) {

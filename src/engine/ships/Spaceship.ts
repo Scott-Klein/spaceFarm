@@ -8,9 +8,10 @@ import {
   TransformNode,
 } from '@babylonjs/core';
 import GameObject from '../GameObject';
-import FlightSystem, { type FlightInput } from '../FlightSystem';
+import FlightSystem from '../FlightSystem';
 import { type IEngineTrail } from './TrailMeshSystem';
 import EngineExhaustSystem from './EngineExhaustSystem';
+import type { ControlInput } from '../Controller';
 
 export default class Spaceship extends GameObject {
   private color: Color3;
@@ -22,17 +23,7 @@ export default class Spaceship extends GameObject {
   constructor(id: string, color: Color3) {
     super(id);
     this.color = color;
-    this.flightSystem = new FlightSystem({
-      maxThrust: 0.014, // Lower thrust - build momentum slowly
-      maxSpeed: 0.1, // Higher max speed
-      pitchSpeed: 0.0007, // Slower pitch - takes time to rotate
-      rollSpeed: 0.0007, // Slower roll - gradual barrel rolls
-      yawSpeed: 0.001, // Slower yaw - heavy turning
-      drag: 0.999, // Almost no drag! Pure inertia
-      mass: 1.0, // Low mass
-      rotationalInertia: 10.0, // Much higher - heavy, weighty rotations
-      lateralDrag: 0.999, // Also almost no lateral drag - pure momentum
-    });
+    this.flightSystem = new FlightSystem();
   }
 
   create(scene: Scene): void {
@@ -98,33 +89,21 @@ export default class Spaceship extends GameObject {
     );
   }
 
-  protected handleControlInput(input: {
-    movement?: Vector3;
-    rotation?: Vector3;
-    flight?: FlightInput;
-  }): void {
-    // Handle flight system input if provided
-    if (input.flight) {
-      const flightUpdate = this.flightSystem.update(input.flight);
-      this.position.addInPlace(flightUpdate.position);
-      this.rotation = flightUpdate.rotation;
-    }
-    // Fallback to simple movement (for backwards compatibility)
-    else if (input.movement && !input.movement.equals(Vector3.Zero())) {
-      this.position.addInPlace(input.movement);
-    }
+  protected handleControlInput(input: ControlInput): void {
+  if (input.flight) {
+    const result = this.flightSystem.update(input.flight);
+    this.position.addInPlace(result.position);// delta
+    this.rotation = result.rotation;// absolute
+  }
+}
 
-    if (input.rotation) {
-      this.rotation.addInPlace(input.rotation);
-    }
+  updatePhysics(): void {
+    super.updatePhysics();
   }
 
-  update(deltaTime: number): void {
-    // First handle controller input via parent
-    super.update(deltaTime);
-
-    // Update engine trail with current throttle
-    this.engineTrail?.update(deltaTime, this.getThrustPercent());
+  updateRender(deltaTime: number): void {
+    super.updateRender(deltaTime);
+    // apply all render effects after gameobject.
   }
 
   getFlightSystem(): FlightSystem {
@@ -141,10 +120,6 @@ export default class Spaceship extends GameObject {
 
   getThrustPercent(): number {
     return this.flightSystem.getThrustPercent();
-  }
-
-  getMaxSpeed(): number {
-    return this.flightSystem.getMaxSpeed();
   }
 
   /**

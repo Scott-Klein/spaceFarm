@@ -10,7 +10,7 @@
       </div>
       <div class="flex flex-col gap-1">
         <span class="text-xs">Throttle</span>
-        <span class="text-m">{{ throttlePercentage.toFixed(0) }}%</span>
+        <span class="text-m">{{ gameStore.player.throttle }}</span>
       </div>
     </div>
   </div>
@@ -35,7 +35,4 @@ const _speedPercentage = computed(() => {
   return Math.min((gameStore.player.speed / gameStore.player.maxSpeed) * 100, 100);
 });
 
-const throttlePercentage = computed(() => {
-  return Math.max(0, Math.min(gameStore.player.throttle * 100, 100));
-});
 </script>

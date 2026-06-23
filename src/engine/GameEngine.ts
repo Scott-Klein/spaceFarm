@@ -24,6 +24,12 @@ export default class GameEngine {
   private gameObjects: Map<string, GameObject> = new Map();
   private selectedObject: GameObject | null = null;
   private lastTime: number = performance.now();
+
+  /**
+   * Accumulates time from rendering that the physics engine 'pays off'
+   * we run through all the ticks that we can until the accumulator is exhausted
+   */
+  private accumulator: number = 0;
   private stateUpdateCallback: StateUpdateCallback | null = null;
 
   constructor(scene: Scene, canvas: HTMLCanvasElement, gameStore: GameStore) {
@@ -59,13 +65,11 @@ export default class GameEngine {
    * @param deltaTime time since last call (certainly the last frame)
    */
   private update(deltaTime: number): void {
-    let accumulator = deltaTime;
-    while (accumulator > 0) {
+    this.accumulator += deltaTime;
+    while (this.accumulator > 0) {
       this.updatePhysics();
-      accumulator -= 50;
+      this.accumulator -= 250;
     }
-
-    accumulator = 0
 
     this.updateRender(deltaTime);
   }
@@ -81,7 +85,6 @@ export default class GameEngine {
       const angles = this.selectedObject.getOrientationAngles();
       this.stateUpdateCallback({
         speed: this.selectedObject.getSpeed(),
-        maxSpeed: this.selectedObject.getMaxSpeed(),
         throttle: this.selectedObject.getThrustPercent(),
         pitch: angles.pitch,
         roll: angles.roll,

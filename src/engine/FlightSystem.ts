@@ -15,13 +15,8 @@ export default class FlightSystem {
   private orientation: Quaternion = Quaternion.Identity();
 
   // Flight characteristics
-  private maxThrust: number = 0.15;
-  private maxSpeed: number = 2.0;
+  private maxThrust: number = 1;
   private currentThrust: number = 0;
-  private thrustAcceleration: number = 0.02; // How fast thrust changes
-  private pitchSpeed: number = 0.02;
-  private rollSpeed: number = 0.03;
-  private yawSpeed: number = 0.015;
 
   // Inertia properties
   private mass: number = 1.0;
@@ -29,32 +24,20 @@ export default class FlightSystem {
 
   // Drag and stability
   private drag: number = 0.98;
-  private angularDrag: number = 0.97; // Higher = more rotational momentum (was 0.85)
-  private lateralDrag: number = 0.92; // Drag for sideways movement (creates drift feel)
 
   constructor(
     config?: Partial<{
       maxThrust: number;
-      maxSpeed: number;
-      pitchSpeed: number;
-      rollSpeed: number;
-      yawSpeed: number;
       drag: number;
       mass: number;
       rotationalInertia: number;
-      lateralDrag: number;
     }>,
   ) {
     if (config) {
       this.maxThrust = config.maxThrust ?? this.maxThrust;
-      this.maxSpeed = config.maxSpeed ?? this.maxSpeed;
-      this.pitchSpeed = config.pitchSpeed ?? this.pitchSpeed;
-      this.rollSpeed = config.rollSpeed ?? this.rollSpeed;
-      this.yawSpeed = config.yawSpeed ?? this.yawSpeed;
       this.drag = config.drag ?? this.drag;
       this.mass = config.mass ?? this.mass;
       this.rotationalInertia = config.rotationalInertia ?? this.rotationalInertia;
-      this.lateralDrag = config.lateralDrag ?? this.lateralDrag;
     }
   }
 
@@ -63,19 +46,19 @@ export default class FlightSystem {
       // Update thrust based on input
       if (input.thrust !== undefined) {
         const targetThrust = input.thrust * this.maxThrust;
-        this.currentThrust += (targetThrust - this.currentThrust) * this.thrustAcceleration;
+        this.currentThrust += (targetThrust - this.currentThrust);
       }
 
       // Apply rotational inputs with inertia (mass/rotational inertia affects how quickly we spin)
       const rotationalForce = 1.0 / this.rotationalInertia;
       if (input.pitch) {
-        this.angularVelocity.x += input.pitch * this.pitchSpeed * rotationalForce;
+        this.angularVelocity.x += input.pitch * rotationalForce;
       }
       if (input.roll) {
-        this.angularVelocity.z += input.roll * this.rollSpeed * rotationalForce;
+        this.angularVelocity.z += input.roll * rotationalForce;
       }
       if (input.yaw) {
-        this.angularVelocity.y += input.yaw * this.yawSpeed * rotationalForce;
+        this.angularVelocity.y += input.yaw * rotationalForce;
       }
 
       // Air brake
@@ -95,13 +78,6 @@ export default class FlightSystem {
 
     // Apply drag in world space (simple uniform drag for now)
     this.velocity.scaleInPlace(this.drag);
-    this.angularVelocity.scaleInPlace(this.angularDrag);
-
-    // Clamp velocity to max speed
-    const currentSpeed = this.velocity.length();
-    if (currentSpeed > this.maxSpeed) {
-      this.velocity.normalize().scaleInPlace(this.maxSpeed);
-    }
 
     // Update orientation based on angular velocity
     const rotationChange = Quaternion.RotationYawPitchRoll(
@@ -157,10 +133,6 @@ export default class FlightSystem {
 
   getOrientation(): Quaternion {
     return this.orientation.clone();
-  }
-
-  getMaxSpeed(): number {
-    return this.maxSpeed;
   }
 
   // Setters for direct manipulation
