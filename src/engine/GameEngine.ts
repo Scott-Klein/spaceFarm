@@ -10,7 +10,6 @@ type GameStore = ReturnType<typeof useGameStore>;
 // Type for the store update callback
 export type StateUpdateCallback = (state: {
   speed: number;
-  maxSpeed: number;
   throttle: number;
   pitch: number;
   roll: number;
