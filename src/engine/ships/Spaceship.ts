@@ -90,12 +90,12 @@ export default class Spaceship extends GameObject {
   }
 
   protected handleControlInput(input: ControlInput): void {
-  if (input.flight) {
-    const result = this.flightSystem.update(input.flight);
-    this.position.addInPlace(result.position);// delta
-    this.rotation = result.rotation;// absolute
+    if (input.flight) {
+      const result = this.flightSystem.update(input.flight);
+      this.position.addInPlace(result.position); // delta
+      this.rotation = result.rotation; // absolute
+    }
   }
-}
 
   updatePhysics(): void {
     super.updatePhysics();

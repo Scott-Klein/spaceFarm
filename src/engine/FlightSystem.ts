@@ -19,11 +19,11 @@ export default class FlightSystem {
   private currentThrust: number = 0;
 
   // Inertia properties
-  private mass: number = 1.0;
-  private rotationalInertia: number = 5.0; // Resistance to rotation changes
+  private mass: number = 100.0;
+  private rotationalInertia: number = 145.0; // Resistance to rotation changes
 
   // Drag and stability
-  private drag: number = 0.98;
+  private drag: number = 0.58;
 
   constructor(
     config?: Partial<{
@@ -78,6 +78,8 @@ export default class FlightSystem {
 
     // Apply drag in world space (simple uniform drag for now)
     this.velocity.scaleInPlace(this.drag);
+
+    this.angularVelocity.scaleInPlace(this.drag);
 
     // Update orientation based on angular velocity
     const rotationChange = Quaternion.RotationYawPitchRoll(

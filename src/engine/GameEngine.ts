@@ -17,6 +17,8 @@ export type StateUpdateCallback = (state: {
 }) => void;
 
 export default class GameEngine {
+  private readonly TICK_RATE = 10;
+  private readonly DELTA_RATE: number;
   private scene: Scene;
   private cameraController: CameraController;
   private inputManager: InputManager;
@@ -38,6 +40,8 @@ export default class GameEngine {
 
     this.setupScene();
     this.setupGameLoop();
+
+    this.DELTA_RATE = (1000) / this.TICK_RATE;
   }
 
   private setupScene(): void {
@@ -65,9 +69,9 @@ export default class GameEngine {
    */
   private update(deltaTime: number): void {
     this.accumulator += deltaTime;
-    while (this.accumulator > 0) {
+    while (this.accumulator >= this.DELTA_RATE) {
       this.updatePhysics();
-      this.accumulator -= 250;
+      this.accumulator -= this.DELTA_RATE;
     }
 
     this.updateRender(deltaTime);
