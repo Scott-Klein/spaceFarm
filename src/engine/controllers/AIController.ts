@@ -1,8 +1,9 @@
-import { Quaternion, Vector3 } from '@babylonjs/core';
+import { Quaternion, Scalar, Vector3 } from '@babylonjs/core';
 import Controller, { type ControlInput } from '../Controller';
 import type { FlightInput } from '../FlightSystem';
 import GameObject from '../GameObject';
 import useLogStore from '@/stores/logs';
+import MathBro from '@/utils/MathBro';
 
 export type AIBehavior = 'idle' | 'patrol' | 'follow' | 'flee';
 
@@ -156,10 +157,8 @@ export default class AIController extends Controller {
     const numPoints = 4;
 
     for (let i = 0; i < numPoints; i++) {
-      const angle = (i / numPoints) * Math.PI * 2;
-      const x = center.x + Math.cos(angle) * this.patrolRadius;
-      const z = center.z + Math.sin(angle) * this.patrolRadius;
-      this.patrolPoints.push(new Vector3(x, center.y, z));
+      const randomPoint = MathBro.randomPointInSphere(center, this.patrolRadius);
+      this.patrolPoints.push(randomPoint);
     }
   }
 
