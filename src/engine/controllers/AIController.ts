@@ -1,4 +1,4 @@
-import { Quaternion, Scalar, Vector3 } from '@babylonjs/core';
+import { Quaternion, Vector3 } from '@babylonjs/core';
 import Controller, { type ControlInput } from '../Controller';
 import type { FlightInput } from '../FlightSystem';
 import GameObject from '../GameObject';
