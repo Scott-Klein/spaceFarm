@@ -28,7 +28,8 @@ export default class HumanController extends Controller {
 
     // Throttle control - Shift/Ctrl increase/decrease thrust gradually
     if (this.inputManager.isCommandActive('forward')) {
-      this.currentThrottle = Math.min(1, this.currentThrottle + this.throttleChangeRate * dt);
+      const desiredThrottle = Math.min(1, this.currentThrottle + this.throttleChangeRate * dt);
+      this.currentThrottle = desiredThrottle;
     }
     if (this.inputManager.isCommandActive('backward')) {
       this.currentThrottle = Math.max(0, this.currentThrottle - this.throttleChangeRate * dt);

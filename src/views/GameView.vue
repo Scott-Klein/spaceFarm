@@ -1,9 +1,9 @@
 <template>
-  <div class="flex h-full w-full select-none">
+  <div class="flex flex-1 min-h-0 w-full select-none">
     <canvas
       ref="canvasRef"
       touch-action="none"
-      class="h-full flex-5 min-h-0 min-w-0 outline-none"
+      class="h-full flex-5 min-h-0 min-w-0 outline-none "
     ></canvas>
     <div class="flex-1">
       <LogWindow />
