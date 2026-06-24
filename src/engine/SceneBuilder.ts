@@ -13,6 +13,8 @@ export interface SceneConfig {
   aiShipCount?: number;
 }
 
+const DEBUG = true;
+
 export default class SceneBuilder {
   private gameEngine: GameEngine;
   private scene: Scene;
@@ -22,7 +24,7 @@ export default class SceneBuilder {
     this.gameEngine = gameEngine;
     this.scene = scene;
     this.log = useLogStore();
-    this.log.log('finished making scene builder')
+    this.log.log('finished making scene builder');
   }
 
   /**
@@ -38,6 +40,33 @@ export default class SceneBuilder {
 
     // Select player ship to start
     this.gameEngine.selectGameObject('player-capital');
+
+    if (DEBUG) {
+      //create a debug object
+      const debugPos = new Vector3(0, 0, 50); //straight in front i think
+      const debugColor = Color3.Purple();
+      this.createReferenceObject(debugPos, 11, debugColor, DEBUG);
+      this.log.log('woof');
+      // gonna find any ai controlled craft
+      const aiC = this.gameEngine
+        .getAllGameObjects()
+        .map((x) => x.getController())
+        .filter((con) => con instanceof AIController);
+      if (aiC) {
+        this.log.log('woof woof wee found a ai controller woof bark! :' + aiC.length);
+        const patrolAic = aiC.find((ai) => ai.getBehaviour === 'patrol');
+        setTimeout(() => {
+          this.log.log('TIMEOUT');
+          if (patrolAic) {
+            const patrolPoints = patrolAic.getPatrolPoints;
+            patrolPoints.forEach((v) => {
+              this.log.log('woof! In GOES THE DEBUG PREVIEW FOR THE PATROL POINT');
+              this.createReferenceObject(v, 11, debugColor, DEBUG);
+            });
+          }
+        }, 2000);
+      }
+    }
   }
 
   /**
@@ -143,7 +172,12 @@ export default class SceneBuilder {
   /**
    * Create a stationary reference object (asteroid/marker)
    */
-  private createReferenceObject(position: Vector3, size: number, color: Color3): void {
+  private createReferenceObject(
+    position: Vector3,
+    size: number,
+    color: Color3,
+    debugFlash = false,
+  ): void {
     const sphere = CreateSphere(
       `ref-${Math.random().toString(36).substr(2, 9)}`,
       { diameter: size },
@@ -158,6 +192,11 @@ export default class SceneBuilder {
     material.diffuseColor = color;
     material.emissiveColor = color.scale(0.3); // Slight glow
     sphere.material = material;
+    if (debugFlash) {
+      setInterval(() => {
+        material.diffuseColor = Color3.Random();
+      }, 1000); // new color every second
+    }
   }
 
   /**

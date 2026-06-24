@@ -12,7 +12,7 @@ export default class AIController extends Controller {
   private target: GameObject | null = null;
   private patrolPoints: Vector3[] = [];
   private currentPatrolIndex = 0;
-  private patrolRadius = 215;
+  private patrolRadius = 815;
   private patrolSatisfactiondistance = 1;
   private baseThrottle = 0.5;
   private idleTime = 0;
@@ -29,6 +29,16 @@ export default class AIController extends Controller {
   setBehavior(behavior: AIBehavior): void {
     this.behavior = behavior;
   }
+
+
+  public get getBehaviour() : AIBehavior {
+    return this.behavior;
+  }
+
+  public get getPatrolPoints(): Vector3[] {
+    return this.patrolPoints;
+  }
+
 
   setTarget(target: GameObject | null): void {
     this.target = target;
