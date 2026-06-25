@@ -30,15 +30,13 @@ export default class AIController extends Controller {
     this.behavior = behavior;
   }
 
-
-  public get getBehaviour() : AIBehavior {
+  public get getBehaviour(): AIBehavior {
     return this.behavior;
   }
 
   public get getPatrolPoints(): Vector3[] {
     return this.patrolPoints;
   }
-
 
   setTarget(target: GameObject | null): void {
     this.target = target;
@@ -101,7 +99,7 @@ export default class AIController extends Controller {
     const { yaw, pitch } = this.computeSteering(targetPoint);
     const gain = 2;
     const flightInput: FlightInput = {
-      thrust: this.baseThrottle,
+      thrust: 1,
       pitch: Math.max(-1, Math.min(1, pitch * gain)),
       roll: 0,
       yaw: Math.max(-1, Math.min(1, yaw * gain)),
@@ -176,14 +174,14 @@ export default class AIController extends Controller {
     const obj = this.controlledObject!;
     const toTarget = targetPos.subtract(obj.position).normalize();
 
-    // World direction -> ship-local direction
-    const orientation = Quaternion.FromEulerVector(obj.rotation);
+    // Use the authoritative quaternion; fall back to Euler only if it's not set
+    const orientation = obj.getMesh()?.rotationQuaternion ?? Quaternion.FromEulerVector(obj.rotation);
+
     const localDir = new Vector3();
     toTarget.rotateByQuaternionToRef(Quaternion.Inverse(orientation), localDir);
 
-    // Babylon left-handed: +Z forward, +X right, +Y up
     const yaw = Math.atan2(localDir.x, localDir.z);
-    const pitch = Math.atan2(localDir.y, Math.hypot(localDir.x, localDir.z));
+    const pitch = Math.atan2(localDir.y, Math.hypot(localDir.x, localDir.z)) * -1;
     return { yaw, pitch };
   }
 }
