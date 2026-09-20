@@ -9,9 +9,9 @@ export interface FlightInput {
 }
 
 const TUNE_MASS = 1;
-const TUNE_ROTATION_DRAG = 0.99
+const TUNE_ROTATION_DRAG = 0.99;
 const TUNE_ROTATIONAL_INTERTIA = 1;
-const TUNE_THRUST = 0.1
+const TUNE_THRUST = 0.1;
 
 export default class FlightSystem {
   // Physics properties
@@ -46,12 +46,12 @@ export default class FlightSystem {
     }
   }
 
-  update(input?: FlightInput): { position: Vector3; rotation: Vector3 } {
+  update(input?: FlightInput): { velocity: Vector3; orientation: Quaternion } {
     if (input) {
       // Update thrust based on input
       if (input.thrust !== undefined) {
         const targetThrust = input.thrust * this.maxThrust;
-        this.currentThrust += (targetThrust - this.currentThrust);
+        this.currentThrust += targetThrust - this.currentThrust;
       }
 
       // Apply rotational inputs with inertia (mass/rotational inertia affects how quickly we spin)
@@ -95,12 +95,9 @@ export default class FlightSystem {
     this.orientation.multiplyInPlace(rotationChange);
     this.orientation.normalize();
 
-    // Convert quaternion to Euler angles for the GameObject
-    const euler = this.orientation.toEulerAngles();
-
     return {
-      position: this.velocity.clone(),
-      rotation: euler,
+      velocity: this.velocity, // no clone — caller reads it same tick
+      orientation: this.orientation,
     };
   }
 
@@ -110,10 +107,9 @@ export default class FlightSystem {
     return forward.applyRotationQuaternion(this.orientation);
   }
 
-  public get mass() : number {
-    return this._mass * TUNE_MASS
+  public get mass(): number {
+    return this._mass * TUNE_MASS;
   }
-
 
   private getLocalVelocity(): Vector3 {
     // Convert world velocity to local space (relative to ship orientation)

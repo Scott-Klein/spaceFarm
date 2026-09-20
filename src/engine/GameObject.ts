@@ -1,30 +1,24 @@
-import { Mesh, Scene, Vector3 } from '@babylonjs/core';
+import { Quaternion, Scene, Vector3 } from '@babylonjs/core';
 import type Controller from './Controller';
-import type { FlightInput } from './FlightSystem';
 import type { ControlInput } from './Controller';
 
 export default abstract class GameObject {
-  protected mesh: Mesh | null = null;
   public position: Vector3;
-  public rotation: Vector3;
+  public orientation: Quaternion;   // was rotation: Vector3
   public id: string;
+  protected disposed = false;
   private controller: Controller | null = null;
   private lastInput: ControlInput | null = null;
 
   constructor(id: string) {
     this.id = id;
     this.position = Vector3.Zero();
-    this.rotation = Vector3.Zero();
+    this.orientation = Quaternion.Identity();
   }
 
   abstract create(scene: Scene): void;
 
   updateRender(deltaTime: number): void {
-    // Update mesh position/rotation
-    if (this.mesh) {
-      this.mesh.position = this.position;
-      this.mesh.rotation = this.rotation;
-    }
     if (this.controller) {
       this.lastInput = this.controller.update(deltaTime);
     }
@@ -40,17 +34,14 @@ export default abstract class GameObject {
   }
 
   // Override this method in subclasses to handle control input differently
-  protected handleControlInput(input: {
-    movement?: Vector3;
-    rotation?: Vector3;
-    flight?: FlightInput;
-    action?: string;
-  }): void {
-    if (input.movement) {
-      this.position.addInPlace(input.movement);
-    }
+  protected handleControlInput(input: ControlInput): void {
+    if (input.movement) this.position.addInPlace(input.movement);
     if (input.rotation) {
-      this.rotation.addInPlace(input.rotation);
+      // body-local delta, applied on the right
+      this.orientation.multiplyInPlace(
+        Quaternion.FromEulerVector(input.rotation)
+      );
+      this.orientation.normalize();   // fight float drift
     }
   }
 
@@ -75,13 +66,11 @@ export default abstract class GameObject {
     return this.controller !== null;
   }
 
-  getMesh(): Mesh | null {
-    return this.mesh;
-  }
-
+  // very strong suggestion: I'll make this abstract some day, maybe??? Maybe not. But maybe!
   dispose(): void {
-    if (this.mesh) {
-      this.mesh.dispose();
-    }
+    if (this.disposed) return;
+    this.disposed = true;
+    // nothing to do here yet, but if game objects need to hold resources
+    // they'll get disposed of here, sub classes should implement dispose and call super.dispose()
   }
 }

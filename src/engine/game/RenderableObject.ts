@@ -1,8 +1,21 @@
 import GameObject from '@/engine/GameObject';
-import { CreateSphere, ImportMeshAsync, Mesh, Scene } from '@babylonjs/core';
+import {
+  CreateSphere,
+  ImportMeshAsync,
+  Mesh,
+  Quaternion,
+  Scene,
+  TransformNode,
+  type ISceneLoaderAsyncResult,
+} from '@babylonjs/core';
 
 export default class RenderableObject extends GameObject {
   protected scene: Scene | null = null;
+
+  // the following two properties come from ISceneLoaderAsyncResult
+  // we'll keep more properties in the future if we need them
+  protected mesh: Mesh | null = null;
+  protected transformNodes: TransformNode[] = [];
 
   protected modelPath: string = '';
 
@@ -11,26 +24,39 @@ export default class RenderableObject extends GameObject {
     this.mesh = this.createPlaceholderMesh();
   }
 
+  updateRender(deltaTime: number): void {
+    super.updateRender(deltaTime);
+    if (!this.mesh) return;
+
+    this.mesh.position.copyFrom(this.position);
+
+    this.mesh.rotationQuaternion ??= Quaternion.Identity();
+    this.mesh.rotationQuaternion.copyFrom(this.orientation);
+  }
+
+  getMesh(): Mesh | null {
+    return this.mesh;
+  }
+
   protected createPlaceholderMesh(): Mesh {
     const body = CreateSphere(`${this.id}-placeHolderMesh`);
     return body;
   }
 
+  // RenderableObject
   protected async loadModelAsync(): Promise<void> {
-    if (!this.scene || this.modelPath.length === 0) {
+    if (!this.scene || !this.modelPath) return;
+    const result = await ImportMeshAsync(this.modelPath, this.scene);
+    if (this.disposed) {
+      result.meshes[0]?.dispose();
       return;
     }
 
-    const result = await ImportMeshAsync(this.modelPath, this.scene);
-
-    // If multiple meshes, use the first as parent
+    this.mesh?.dispose();
     this.mesh = result.meshes[0] as Mesh;
-    // Parent any and all other meshes to the first one
-    for (let i = 1; i < result.meshes.length; i++) {
-      const childMesh = result.meshes[i];
-      if (childMesh && this.mesh) {
-        childMesh.parent = this.mesh;
-      }
-    }
+    this.mesh.name = this.id;
+    this.onModelLoaded(result);
   }
+
+  protected onModelLoaded(_result: ISceneLoaderAsyncResult): void {}
 }

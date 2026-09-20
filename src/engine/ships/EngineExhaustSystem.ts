@@ -1,4 +1,12 @@
-import { Color4, ParticleSystem, Texture, Vector3, type Scene, type TransformNode } from '@babylonjs/core';
+import {
+  AbstractMesh,
+  Color4,
+  ParticleSystem,
+  Texture,
+  Vector3,
+  type Scene,
+  type TransformNode,
+} from '@babylonjs/core';
 import type { IEngineTrail } from './TrailMeshSystem';
 import {
   type EngineExhaustConfig,
@@ -60,13 +68,17 @@ export default class EngineExhaustSystem implements IEngineTrail {
     config: EngineExhaustConfig,
     index: number,
   ): ParticleSystem {
-    const ps = new ParticleSystem(`exhaust_${emitterNode.name}_${index}`, config.capacity, this.scene);
+    const ps = new ParticleSystem(
+      `exhaust_${emitterNode.name}_${index}`,
+      config.capacity,
+      this.scene,
+    );
 
     // Flare texture for glow
     ps.particleTexture = new Texture('https://assets.babylonjs.com/textures/flare.png', this.scene);
 
     // Emission from engine node
-    ps.emitter = emitterNode;
+    ps.emitter = emitterNode as unknown as AbstractMesh;
     ps.minEmitBox = new Vector3(0, 0, 0);
     ps.maxEmitBox = new Vector3(0, 0, 0);
 
@@ -145,16 +157,19 @@ export default class EngineExhaustSystem implements IEngineTrail {
     const gradients = ps.getColorGradients();
     if (!gradients) return;
 
-    // Lerp between low and high throttle colors
-    for (let i = 0; i < gradients.length && i < config.colorGradients.length; i++) {
-      const low = config.colorGradients[i].color;
-      const high = config.highThrottleColorGradients[i]?.color ?? low;
+    const count = Math.min(gradients.length, config.colorGradients.length);
+    for (let i = 0; i < count; i++) {
+      const gradient = gradients[i];
+      const lowGradient = config.colorGradients[i];
+      if (!gradient || !lowGradient) continue;
 
+      const low = lowGradient.color;
+      const high = config.highThrottleColorGradients[i]?.color ?? low;
       const lerped = Color4.Lerp(low, high, throttle);
-      gradients[i].color1 = lerped;
-      // color2 is for gradient ranges - set same as color1 for solid gradient points
-      if (gradients[i].color2) {
-        gradients[i].color2 = lerped;
+
+      gradient.color1 = lerped;
+      if (gradient.color2) {
+        gradient.color2 = lerped;
       }
     }
   }
@@ -212,5 +227,10 @@ export default class EngineExhaustSystem implements IEngineTrail {
 /**
  * Re-export config utilities for convenience
  */
-export { ENGINE_PRESETS, getPresetForNode, cloneConfig, withColorScheme } from './EngineExhaustConfigs';
+export {
+  ENGINE_PRESETS,
+  getPresetForNode,
+  cloneConfig,
+  withColorScheme,
+} from './EngineExhaustConfigs';
 export type { EngineExhaustConfig } from './EngineExhaustConfigs';

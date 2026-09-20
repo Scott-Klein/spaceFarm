@@ -13,7 +13,9 @@ export default class CameraController {
   private scene: Scene;
   private offset: Vector3;
   private gameStore: GameStore;
-
+  
+  private localOffset = new Vector3(0, 5, 25); // behind + above, local space
+  
   constructor(scene: Scene, canvas: HTMLCanvasElement, gameStore: GameStore) {
     this.scene = scene;
     this.gameStore = gameStore;
@@ -31,10 +33,7 @@ export default class CameraController {
 
   setTarget(gameObject: GameObject | null): void {
     this.target = gameObject;
-    if (this.target) {
-      const mesh = this.target.getMesh();
-      if (mesh) this.camera.setTarget(mesh);
-    }
+    if (this.target) this.camera.setTarget(this.target.position);
   }
 
   getTarget(): GameObject | null {
@@ -42,38 +41,26 @@ export default class CameraController {
   }
 
   update(): void {
-    // Auto-detect mode changes from store
     const desiredMode = this.gameStore.cameraMode === 'free' ? 'arcRotate' : 'follow';
     if (desiredMode !== this.cameraMode) {
-      if (desiredMode === 'arcRotate') {
-        this.setArcRotateMode();
-      } else {
-        this.setFollowMode();
-      }
+      if (desiredMode === 'arcRotate') this.setArcRotateMode();
+      else this.setFollowMode();
     }
 
-    if (this.cameraMode === 'follow' && this.target) {
-      const targetMesh = this.target.getMesh();
+    if (this.cameraMode !== 'follow' || !this.target) return;
 
-      // Recreate pivot if mesh changed (e.g., model loaded)
-      if (targetMesh && this.cameraPivot && this.cameraPivot.parent !== targetMesh) {
-        console.log('Mesh changed, recreating camera pivot');
-        this.setFollowMode();
-      }
+    const q = this.target.orientation;
 
-      if (this.cameraPivot && targetMesh) {
-        // Follow mode: camera follows pivot (which is parented to ship)
-        const targetPos = this.cameraPivot.getAbsolutePosition();
-        const shipPos = this.target.position;
+    const offset = new Vector3();
+    this.localOffset.rotateByQuaternionToRef(q, offset);
+    const desiredPos = this.target.position.add(offset);
 
-        // Lerp camera to pivot position
-        this.camera.position = Vector3.Lerp(this.camera.position, targetPos, 0.1);
-        this.camera.setTarget(shipPos);
+    const up = new Vector3();
+    Vector3.Up().rotateByQuaternionToRef(q, up);
 
-        // Match ship's roll by updating camera's up vector
-        this.camera.upVector = targetMesh.up.clone();
-      }
-    }
+    this.camera.setTarget(this.target.position);
+    this.camera.setPosition(Vector3.Lerp(this.camera.position, desiredPos, 0.1));
+    this.camera.upVector = up;
   }
 
   getCamera(): ArcRotateCamera {
@@ -90,31 +77,9 @@ export default class CameraController {
   }
 
   setFollowMode(): void {
-    console.log('Switching to follow mode');
     this.cameraMode = 'follow';
-
-    const targetMesh = this.target?.getMesh();
-    if (!targetMesh) {
-      console.warn('No target mesh for follow mode');
-      return;
-    }
-
-    // Recreate pivot each time to handle mesh replacement
-    if (this.cameraPivot) {
-      this.cameraPivot.dispose();
-    }
-
-    this.cameraPivot = new TransformNode('cameraPivot', this.scene);
-    this.cameraPivot.parent = targetMesh;
-    // In local space: negative Z is forward, so positive Z is behind
-    // Y is up, X is right
-    this.cameraPivot.position = new Vector3(0, 5, 25); // behind and above in local space
-
-    // Keep using ArcRotateCamera but disable user controls
     this.scene.activeCamera = this.camera;
     this.camera.detachControl();
-
-    console.log('Follow mode active with pivot');
   }
 
   setArcRotateMode(): void {

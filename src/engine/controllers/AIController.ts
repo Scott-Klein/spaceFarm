@@ -174,14 +174,11 @@ export default class AIController extends Controller {
     const obj = this.controlledObject!;
     const toTarget = targetPos.subtract(obj.position).normalize();
 
-    // Use the authoritative quaternion; fall back to Euler only if it's not set
-    const orientation = obj.getMesh()?.rotationQuaternion ?? Quaternion.FromEulerVector(obj.rotation);
-
     const localDir = new Vector3();
-    toTarget.rotateByQuaternionToRef(Quaternion.Inverse(orientation), localDir);
+    toTarget.rotateByQuaternionToRef(Quaternion.Inverse(obj.orientation), localDir);
 
     const yaw = Math.atan2(localDir.x, localDir.z);
-    const pitch = Math.atan2(localDir.y, Math.hypot(localDir.x, localDir.z)) * -1;
+    const pitch = -Math.atan2(localDir.y, Math.hypot(localDir.x, localDir.z));
     return { yaw, pitch };
   }
 }

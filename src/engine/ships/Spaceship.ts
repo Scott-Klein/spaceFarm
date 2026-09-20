@@ -7,6 +7,7 @@ import {
   CreateBox,
   TransformNode,
   CreateSphere,
+  Quaternion,
 } from '@babylonjs/core';
 import FlightSystem from '../FlightSystem';
 import { type IEngineTrail } from './TrailMeshSystem';
@@ -40,15 +41,15 @@ export default class Spaceship extends RenderableObject {
   protected initializeMesh(mesh: Mesh): void {
     mesh.name = this.id;
 
-    // Apply material
     const material = new StandardMaterial(`${this.id}-material`, this.scene!);
     material.diffuseColor = this.color;
     material.specularColor = new Color3(0.2, 0.2, 0.2);
     mesh.material = material;
 
     // Sync transform
-    mesh.position = this.position;
-    mesh.rotation = this.rotation;
+    mesh.position.copyFrom(this.position);
+    mesh.rotationQuaternion ??= Quaternion.Identity();
+    mesh.rotationQuaternion.copyFrom(this.orientation);
   }
 
   protected createDefaultEngineNodes(): void {
@@ -94,8 +95,8 @@ export default class Spaceship extends RenderableObject {
   protected handleControlInput(input: ControlInput): void {
     if (input.flight) {
       const result = this.flightSystem.update(input.flight);
-      this.position.addInPlace(result.position); // delta
-      this.rotation = result.rotation; // absolute
+      this.position.addInPlace(result.velocity); // delta
+      this.orientation.copyFrom(result.orientation); // absolute
     }
   }
 
@@ -124,17 +125,17 @@ export default class Spaceship extends RenderableObject {
     return this.flightSystem.getThrustPercent();
   }
 
-  /**
-   * Get orientation angles in degrees
-   * @returns { pitch, roll, yaw } in degrees
-   */
+  private static readonly _euler = new Vector3();
+
   getOrientationAngles(): { pitch: number; roll: number; yaw: number } {
-    // Convert Babylon rotation vector (in radians) to degrees
+    const e = Spaceship._euler;
+    this.orientation.toEulerAnglesToRef(e);
+
     const toDegrees = (rad: number) => (rad * 180) / Math.PI;
     return {
-      pitch: toDegrees(this.rotation.x),
-      roll: toDegrees(this.rotation.z),
-      yaw: toDegrees(this.rotation.y),
+      pitch: toDegrees(e.x),
+      yaw: toDegrees(e.y),
+      roll: toDegrees(e.z),
     };
   }
 }

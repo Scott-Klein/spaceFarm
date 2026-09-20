@@ -1,4 +1,8 @@
-import { Scene, Color3, Mesh, ImportMeshAsync, CreateBox } from '@babylonjs/core';
+import {
+  Scene,
+  Color3,
+  type ISceneLoaderAsyncResult,
+} from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
 import Spaceship from './Spaceship';
 import EngineExhaustSystem from './EngineExhaustSystem';
@@ -12,100 +16,39 @@ export default class CapitalShip extends Spaceship {
   }
 
   create(scene: Scene): void {
-    this.scene = scene;
+    super.create(scene); // sets this.scene, builds the placeholder
 
-    // Create a placeholder mesh immediately (simple box)
-    this.mesh = CreateBox(`${this.id}-placeholder`, { size: 2 }, scene);
-    this.mesh.position = this.position.clone();
-    this.mesh.rotation = this.rotation.clone();
-
-    // Create default engine node for placeholder, then load actual model
     this.createDefaultEngineNodes();
     this.engineTrail = new EngineExhaustSystem(this.engineNodes, scene);
 
-    // Load the actual model asynchronously in the background
-    this.loadModelAsync();
+    void this.loadModelAsync();
   }
 
+  // CapitalShip
   dispose(): void {
+    if (this.disposed) return;
+    this.engineTrail?.dispose();
+    this.engineTrail = null;
+    for (const node of this.engineNodes) node.dispose();
+    this.engineNodes = [];
     super.dispose();
   }
 
-  protected async loadModelAsync(): Promise<void> {
-    if (!this.scene) return;
-    try {
-      // Load the GLB model using the modern async method
-      const result = await ImportMeshAsync(this.modelPath, this.scene);
+  // CapitalShip
+  protected onModelLoaded(result: ISceneLoaderAsyncResult): void {
+    this.engineTrail?.dispose();
+    for (const node of this.engineNodes) node.dispose();
 
-      if (result.meshes.length > 0) {
-        // Store the current position and rotation from placeholder
-        const currentPosition = this.mesh?.position.clone();
-        const currentRotation = this.mesh?.rotation.clone();
-
-        // Dispose of the placeholder mesh and its trail
-        if (this.engineTrail) {
-          this.engineTrail.dispose();
-          this.engineTrail = null;
-        }
-        // Dispose old engine nodes
-        for (const node of this.engineNodes) {
-          node.dispose();
-        }
-        this.engineNodes = [];
-
-        if (this.mesh) {
-          this.mesh.dispose();
-        }
-
-        // Use the loaded model
-        if (result.meshes.length === 1) {
-          this.mesh = result.meshes[0] as Mesh;
-        } else {
-          // If multiple meshes, use the first as parent
-          this.mesh = result.meshes[0] as Mesh;
-          // Parent all other meshes to the first one
-          for (let i = 1; i < result.meshes.length; i++) {
-            const childMesh = result.meshes[i];
-            if (childMesh && this.mesh) {
-              childMesh.parent = this.mesh;
-            }
-          }
-        }
-
-        if (this.mesh && currentPosition && currentRotation) {
-          this.mesh.name = this.id;
-
-          // Restore position and rotation from placeholder
-          this.mesh.position = currentPosition;
-          this.mesh.rotation = currentRotation;
-
-          // Find ENGINE_* nodes from the loaded model
-          const modelEngineNodes = result.transformNodes.filter(
-            (node) =>
-              node.name.includes('ENGINE_SMALL') ||
-              node.name.includes('ENGINE_MEDIUM') ||
-              node.name.includes('ENGINE_LARGE') ||
-              node.name.includes('ENGINE_MASSIVE'),
-          );
-
-          if (modelEngineNodes.length > 0) {
-            this.engineNodes = modelEngineNodes;
-            console.log(
-              `Found ${modelEngineNodes.length} engine nodes:`,
-              modelEngineNodes.map((n) => n.name),
-            );
-          } else {
-            // Fallback to default engine node if no ENGINE_* nodes found
-            console.warn('No ENGINE_* nodes found in model, using default');
-            this.createDefaultEngineNodes();
-          }
-
-          // Create engine trails for all engine nodes
-          this.engineTrail = new EngineExhaustSystem(this.engineNodes, this.scene);
-        }
-      }
-    } catch (error) {
-      console.error(`Failed to load model ${this.modelPath}:`, error);
+    const found = result.transformNodes.filter((n) =>
+      /ENGINE_(SMALL|MEDIUM|LARGE|MASSIVE)/.test(n.name),
+    );
+    if (found.length) {
+      this.engineNodes = found;
+    } else {
+      console.warn('No ENGINE_* nodes found in model, using default');
+      this.engineNodes = [];
+      this.createDefaultEngineNodes();
     }
+    this.engineTrail = new EngineExhaustSystem(this.engineNodes, this.scene!);
   }
 }
