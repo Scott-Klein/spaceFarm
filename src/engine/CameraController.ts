@@ -1,6 +1,7 @@
 import { ArcRotateCamera, Vector3, Scene, FollowCamera, TransformNode } from '@babylonjs/core';
 import GameObject from './GameObject';
 import type { useGameStore } from '@/stores/gameState';
+import useLogStore from '@/stores/logs';
 
 type GameStore = ReturnType<typeof useGameStore>;
 
@@ -8,15 +9,16 @@ export default class CameraController {
   private camera: ArcRotateCamera;
   private followCamera?: FollowCamera;
   private cameraPivot?: TransformNode;
-  private cameraMode: 'arcRotate' | 'follow' = 'arcRotate';
+  private cameraMode: 'arcRotate' | 'follow' | 'unset' = 'unset';
   private target: GameObject | null = null;
   private scene: Scene;
   private offset: Vector3;
   private gameStore: GameStore;
-  
+  logger: ReturnType<typeof useLogStore>;
   private localOffset = new Vector3(0, 5, 25); // behind + above, local space
-  
+
   constructor(scene: Scene, canvas: HTMLCanvasElement, gameStore: GameStore) {
+    this.logger = useLogStore();
     this.scene = scene;
     this.gameStore = gameStore;
     this.camera = new ArcRotateCamera(
@@ -27,8 +29,8 @@ export default class CameraController {
       Vector3.Zero(),
       scene,
     );
-    this.camera.attachControl(canvas, true);
     this.offset = new Vector3(0, 5, -10);
+    this.logger.log('The camera controller is setup.');
   }
 
   setTarget(gameObject: GameObject | null): void {
@@ -47,7 +49,14 @@ export default class CameraController {
       else this.setFollowMode();
     }
 
-    if (this.cameraMode !== 'follow' || !this.target) return;
+    if (!this.target) return;
+    if (this.cameraMode === 'arcRotate') {
+      // keep orbiting the ship without touching alpha/beta/radius
+      this.camera.target.copyFrom(this.target.position);
+      return;
+    }
+
+    if (this.cameraMode !== 'follow') return;
 
     const q = this.target.orientation;
 

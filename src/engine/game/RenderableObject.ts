@@ -8,6 +8,7 @@ import {
   TransformNode,
   type ISceneLoaderAsyncResult,
 } from '@babylonjs/core';
+import useLogStore from '@/stores/logs';
 
 export default class RenderableObject extends GameObject {
   protected scene: Scene | null = null;
@@ -18,6 +19,11 @@ export default class RenderableObject extends GameObject {
   protected transformNodes: TransformNode[] = [];
 
   protected modelPath: string = '';
+  logger: ReturnType<typeof useLogStore>;
+  constructor(id: string) {
+    super(id);
+    this.logger = useLogStore();
+  }
 
   create(scene: Scene): void {
     this.scene = scene;
@@ -45,6 +51,7 @@ export default class RenderableObject extends GameObject {
 
   // RenderableObject
   protected async loadModelAsync(): Promise<void> {
+    this.logger.log('Begin load model of renderable:' + this.id)
     if (!this.scene || !this.modelPath) return;
     const result = await ImportMeshAsync(this.modelPath, this.scene);
     if (this.disposed) {
@@ -56,6 +63,7 @@ export default class RenderableObject extends GameObject {
     this.mesh = result.meshes[0] as Mesh;
     this.mesh.name = this.id;
     this.onModelLoaded(result);
+        this.logger.log('end load model of renderable:' + this.id)
   }
 
   protected onModelLoaded(_result: ISceneLoaderAsyncResult): void {}
