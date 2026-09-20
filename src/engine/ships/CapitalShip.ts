@@ -4,7 +4,7 @@ import Spaceship from './Spaceship';
 import EngineExhaustSystem from './EngineExhaustSystem';
 
 export default class CapitalShip extends Spaceship {
-  private modelPath: string;
+  protected modelPath: string;
 
   constructor(id: string, color: Color3, modelPath: string) {
     super(id, color);
@@ -24,22 +24,18 @@ export default class CapitalShip extends Spaceship {
     this.engineTrail = new EngineExhaustSystem(this.engineNodes, scene);
 
     // Load the actual model asynchronously in the background
-    this.loadModelAsync(scene);
-  }
-
-  update(deltaTime: number): void {
-    // Call parent update (handles controller input, flight physics, trail)
-    super.update(deltaTime);
+    this.loadModelAsync();
   }
 
   dispose(): void {
     super.dispose();
   }
 
-  private async loadModelAsync(scene: Scene): Promise<void> {
+  protected async loadModelAsync(): Promise<void> {
+    if (!this.scene) return;
     try {
       // Load the GLB model using the modern async method
-      const result = await ImportMeshAsync(this.modelPath, scene);
+      const result = await ImportMeshAsync(this.modelPath, this.scene);
 
       if (result.meshes.length > 0) {
         // Store the current position and rotation from placeholder
@@ -105,7 +101,7 @@ export default class CapitalShip extends Spaceship {
           }
 
           // Create engine trails for all engine nodes
-          this.engineTrail = new EngineExhaustSystem(this.engineNodes, scene);
+          this.engineTrail = new EngineExhaustSystem(this.engineNodes, this.scene);
         }
       }
     } catch (error) {

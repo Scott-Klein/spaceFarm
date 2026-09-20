@@ -6,17 +6,17 @@ import {
   Color3,
   CreateBox,
   TransformNode,
+  CreateSphere,
 } from '@babylonjs/core';
-import GameObject from '../GameObject';
 import FlightSystem from '../FlightSystem';
 import { type IEngineTrail } from './TrailMeshSystem';
 import EngineExhaustSystem from './EngineExhaustSystem';
 import type { ControlInput } from '../Controller';
+import RenderableObject from '../game/RenderableObject';
 
-export default class Spaceship extends GameObject {
+export default class Spaceship extends RenderableObject {
   private color: Color3;
   private flightSystem: FlightSystem;
-  protected scene: Scene | null = null;
   protected engineTrail: IEngineTrail | null = null;
   protected engineNodes: TransformNode[] = [];
 
@@ -65,7 +65,7 @@ export default class Spaceship extends GameObject {
     return this.engineNodes;
   }
 
-  private createPlaceholderMesh(): Mesh | null {
+  protected createPlaceholderMesh(): Mesh {
     const body = CreateBox(`${this.id}-body`, { width: 1, height: 0.5, depth: 2 });
     const cockpit = CreateBox(`${this.id}-cockpit`, { width: 0.8, height: 0.6, depth: 0.8 });
     cockpit.position.y = 0.5;
@@ -79,7 +79,7 @@ export default class Spaceship extends GameObject {
     rightWing.position.x = 1.5;
     rightWing.position.z = -0.3;
 
-    return Mesh.MergeMeshes(
+    const merged = Mesh.MergeMeshes(
       [body, cockpit, leftWing, rightWing],
       true,
       false,
@@ -87,6 +87,8 @@ export default class Spaceship extends GameObject {
       false,
       true,
     );
+
+    return merged || CreateSphere(`${this.id}-body`);
   }
 
   protected handleControlInput(input: ControlInput): void {

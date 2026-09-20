@@ -217,4 +217,10 @@ export default class SceneBuilder {
 
     return position;
   }
+
+  private createSpaceStation() {
+    const randomPos = this.randomSpacePosition(300, 25);
+    
+
+  }
 }
