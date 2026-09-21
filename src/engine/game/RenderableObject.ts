@@ -20,8 +20,9 @@ export default class RenderableObject extends GameObject {
 
   protected modelPath: string = '';
   logger: ReturnType<typeof useLogStore>;
-  constructor(id: string) {
+  constructor(id: string, modelPath: string) {
     super(id);
+    this.modelPath = modelPath;
     this.logger = useLogStore();
   }
 

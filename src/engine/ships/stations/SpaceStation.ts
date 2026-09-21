@@ -4,8 +4,7 @@ import type { Scene } from '@babylonjs/core';
 export default class SpaceStation extends RenderableObject {
 
   constructor(id: string, modelPath: string) {
-    super(id);
-    this.modelPath = modelPath;
+    super(id, modelPath);
   }
 
   create(scene: Scene): void {

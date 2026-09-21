@@ -69,13 +69,6 @@ export function useBabylonScene(options: BabylonSceneOptions) {
       engine?.resize();
     };
     window.addEventListener('resize', handleResize);
-
-    // Cleanup on unmount
-    onUnmounted(() => {
-      window.removeEventListener('resize', handleResize);
-      scene?.dispose();
-      engine?.dispose();
-    });
   });
 
   return {

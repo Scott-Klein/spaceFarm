@@ -5,6 +5,7 @@ import HumanController from './controllers/HumanController';
 import AIController from './controllers/AIController';
 import CapitalShip from './ships/CapitalShip';
 import useLogStore from '@/stores/logs';
+import SpaceStation from './ships/stations/SpaceStation';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -37,7 +38,7 @@ export default class SceneBuilder {
     this.createLandmarks(landmarkCount, spaceRadius);
     this.createPlayerShip();
     this.createAIShips(aiShipCount);
-
+    this.createSpaceStation();
     // Select player ship to start
     this.gameEngine.selectGameObject('player-capital');
 
@@ -60,7 +61,6 @@ export default class SceneBuilder {
           if (patrolAic) {
             const patrolPoints = patrolAic.getPatrolPoints;
             patrolPoints.forEach((v) => {
-              this.log.log('woof! In GOES THE DEBUG PREVIEW FOR THE PATROL POINT');
               this.createReferenceObject(v, 11, debugColor, DEBUG);
             });
           }
@@ -167,6 +167,14 @@ export default class SceneBuilder {
       aiShip.possess(aiController);
       this.gameEngine.addGameObject(aiShip);
     }
+  }
+
+  private createSpaceStation(): void {
+    const randomPos = this.randomSpacePosition(150);
+
+    const spaceStation = new SpaceStation('station1', '/models/SpaceStation1.glb');
+    spaceStation.position = randomPos;
+    this.gameEngine.addGameObject(spaceStation);
   }
 
   /**

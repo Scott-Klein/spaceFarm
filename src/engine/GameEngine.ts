@@ -46,11 +46,11 @@ export default class GameEngine {
 
   private setupScene(): void {
     // Set space background color (dark blue/black)
-    this.scene.clearColor = new Color3(0.05, 0.05, 0.15).toColor4();
+    this.scene.clearColor = new Color3(0.01, 0.04, 0.04).toColor4();
 
     // Add ambient light
-    const light = new HemisphericLight('ambient', new Vector3(0, 1, 0), this.scene);
-    light.intensity = 0.7;
+    const light = new HemisphericLight('ambient', new Vector3(1, 1, 0.6), this.scene);
+    light.intensity = 0.01;
   }
 
   private setupGameLoop(): void {
