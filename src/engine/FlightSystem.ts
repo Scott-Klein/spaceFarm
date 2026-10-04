@@ -1,4 +1,5 @@
-import { Vector3, Quaternion } from '@babylonjs/core';
+import { multiplyQuatInPlace, normalizeQuat, quatFromEuler, quatIdentity, rotateVec3ByQuat, vec3Length } from '@/utils/extensions';
+import { addVec3InPlace, scaleVec3, scaleVec3InPlace, vec3, type Quat, type Vec3 } from '@babylonjs/lite';
 
 export interface FlightInput {
   thrust?: number; // 0-1 (throttle)
@@ -15,9 +16,9 @@ const TUNE_THRUST = 0.1;
 
 export default class FlightSystem {
   // Physics properties
-  private velocity: Vector3 = Vector3.Zero();
-  private angularVelocity: Vector3 = Vector3.Zero();
-  private orientation: Quaternion = Quaternion.Identity();
+  private velocity: Vec3 = vec3(0,0,0);
+  private angularVelocity: Vec3 = vec3(0,0,0);
+  private orientation: Quat = quatIdentity();
 
   // Flight characteristics
   private maxThrust: number = 1;
@@ -46,7 +47,7 @@ export default class FlightSystem {
     }
   }
 
-  update(input?: FlightInput): { velocity: Vector3; orientation: Quaternion } {
+  update(input?: FlightInput): { velocity: Vec3; orientation: Quat } {
     if (input) {
       // Update thrust based on input
       if (input.thrust !== undefined) {
@@ -68,7 +69,7 @@ export default class FlightSystem {
 
       // Air brake - dont think i'll use it
       if (input.brake) {
-        this.velocity.scaleInPlace(0.95);
+        scaleVec3InPlace(this.velocity, 0.95)
         this.currentThrust *= 0.9;
       }
     }
@@ -77,23 +78,18 @@ export default class FlightSystem {
     // This is key - thrust applies in ship's forward direction, not movement direction
     if (this.currentThrust > 0) {
       const forward = this.getForwardVector();
-      const thrustForce = forward.scale((this.currentThrust / this.mass) * TUNE_THRUST);
-      this.velocity.addInPlace(thrustForce);
+      const thrustForce = scaleVec3(forward, (this.currentThrust / this.mass) * TUNE_THRUST)
+      addVec3InPlace(this.velocity, thrustForce);
     }
 
     // Apply drag in world space (simple uniform drag for now)
-    this.velocity.scaleInPlace(this.drag);
-
-    this.angularVelocity.scaleInPlace(this.drag * TUNE_ROTATION_DRAG);
+    scaleVec3InPlace(this.velocity, this.drag);
+    scaleVec3InPlace(this.angularVelocity, this.drag * TUNE_ROTATION_DRAG);
 
     // Update orientation based on angular velocity
-    const rotationChange = Quaternion.RotationYawPitchRoll(
-      this.angularVelocity.y,
-      this.angularVelocity.x,
-      this.angularVelocity.z,
-    );
-    this.orientation.multiplyInPlace(rotationChange);
-    this.orientation.normalize();
+    const rotationCHange = quatFromEuler(this.angularVelocity);
+    multiplyQuatInPlace(this.orientation, rotationCHange);
+    this.orientation = normalizeQuat(this.orientation);
 
     return {
       velocity: this.velocity, // no clone — caller reads it same tick
@@ -101,34 +97,24 @@ export default class FlightSystem {
     };
   }
 
-  private getForwardVector(): Vector3 {
+  private getForwardVector(): Vec3 {
     // Get the forward direction based on current orientation
-    const forward = new Vector3(0, 0, 1);
-    return forward.applyRotationQuaternion(this.orientation);
+    const forward = vec3(0, 0, 1);
+    
+    return rotateVec3ByQuat(this.orientation, forward);
   }
 
   public get mass(): number {
     return this._mass * TUNE_MASS;
   }
 
-  private getLocalVelocity(): Vector3 {
-    // Convert world velocity to local space (relative to ship orientation)
-    const inverseOrientation = Quaternion.Inverse(this.orientation);
-    return this.velocity.applyRotationQuaternion(inverseOrientation);
-  }
-
-  private localToWorldVelocity(localVel: Vector3): Vector3 {
-    // Convert local velocity back to world space
-    return localVel.applyRotationQuaternion(this.orientation);
-  }
-
   // Getters for flight data
-  getVelocity(): Vector3 {
-    return this.velocity.clone();
+  getVelocity(): Vec3 {
+    return { ...this.velocity };
   }
 
   getSpeed(): number {
-    return this.velocity.length();
+    return vec3Length(this.velocity);
   }
 
   getCurrentThrust(): number {
@@ -139,17 +125,17 @@ export default class FlightSystem {
     return (this.currentThrust / this.maxThrust) * 100;
   }
 
-  getOrientation(): Quaternion {
-    return this.orientation.clone();
+  getOrientation(): Quat {
+    return { ...this.orientation };
   }
 
   // Setters for direct manipulation
-  setVelocity(velocity: Vector3): void {
-    this.velocity = velocity.clone();
+  setVelocity(velocity: Vec3): void {
+    this.velocity = { ...velocity };
   }
 
-  setOrientation(quaternion: Quaternion): void {
-    this.orientation = quaternion.clone();
+  setOrientation(quaternion: Quat): void {
+    this.orientation = { ...quaternion };
   }
 
   setThrust(thrust: number): void {
@@ -158,9 +144,9 @@ export default class FlightSystem {
 
   // Reset all flight state
   reset(): void {
-    this.velocity = Vector3.Zero();
-    this.angularVelocity = Vector3.Zero();
-    this.orientation = Quaternion.Identity();
+    this.velocity = vec3(0, 0, 0);
+    this.angularVelocity = vec3(0, 0, 0);
+    this.orientation = quatIdentity();
     this.currentThrust = 0;
   }
 }

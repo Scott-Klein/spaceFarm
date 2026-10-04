@@ -1,78 +1,49 @@
-import { onMounted, onUnmounted, type Ref } from 'vue';
-import { WebGPUEngine } from '@babylonjs/core/Engines/webgpuEngine';
-import { Scene } from '@babylonjs/core/scene';
-
+import { initialise } from '@/globals';
+import {
+  createEngine,
+  createSceneContext,
+  startEngine,
+  disposeEngine,
+  disposeScene,
+  registerSceneWithShadowSupport
+} from '@babylonjs/lite';
 export interface BabylonSceneOptions {
-  canvasRef: Ref<HTMLCanvasElement | null>;
-  onSceneReady?: (scene: Scene, engine: WebGPUEngine) => void;
-  onRender?: (scene: Scene) => void;
-  engineOptions?: {
-    adaptToDeviceRatio?: boolean;
-    antialias?: boolean;
-  };
+  canvas: HTMLCanvasElement;
+  onSceneReady?: () => void;
 }
 
-export function useBabylonScene(options: BabylonSceneOptions) {
-  const {
-    canvasRef,
-    onSceneReady,
-    onRender,
-    engineOptions = { adaptToDeviceRatio: true, antialias: true },
-  } = options;
+async function setupBabylonScene(options: BabylonSceneOptions) {
+  const { canvas, onSceneReady } = options;
 
-  let engine: WebGPUEngine | null = null;
-  let scene: Scene | null = null;
+  if (!canvas) {
+    throw Error('Canvas! Where is the canvas? YOU NEED A CANVAS')
+  }
 
-  onMounted(async () => {
-    const canvas = canvasRef.value;
-    if (!canvas) {
-      console.error('Canvas element not found');
-      return;
-    }
+  // Create WebGPU engine
+  const engine = await createEngine(canvas);
 
-    // Check WebGPU support
-    const webGPUSupported = await WebGPUEngine.IsSupportedAsync;
+  // Create scene
+  const scene = createSceneContext(engine);
+  initialise(engine, scene, canvas)
+  // Call the setup callback
+  if (onSceneReady) {
+    onSceneReady();
+  }
 
-    if (!webGPUSupported) {
-      console.error('WebGPU is not supported in this browser');
-      // You could show an error message to the user here
-      return;
-    }
+  await registerSceneWithShadowSupport(scene);
+  // Start render loop
+  await startEngine(engine);
 
-    // Load WebGPU extensions
-    await import('@babylonjs/core/Engines/WebGPU/Extensions/');
-
-    // Create WebGPU engine
-    engine = new WebGPUEngine(canvas, engineOptions);
-    await engine.initAsync();
-
-    // Create scene
-    scene = new Scene(engine);
-
-    // Call the setup callback
-    if (onSceneReady) {
-      onSceneReady(scene, engine);
-    }
-
-    // Start render loop
-    engine.runRenderLoop(() => {
-      if (scene) {
-        if (onRender) {
-          onRender(scene);
-        }
-        scene.render();
-      }
-    });
-
-    // Handle window resize
-    const handleResize = () => {
-      engine?.resize();
-    };
-    window.addEventListener('resize', handleResize);
-  });
+  const dispose = () => {
+    disposeScene(scene);
+    disposeEngine(engine);
+  }
 
   return {
     engine,
     scene,
+    dispose
   };
 }
+
+export default setupBabylonScene;

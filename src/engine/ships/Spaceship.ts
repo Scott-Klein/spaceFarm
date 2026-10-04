@@ -1,64 +1,59 @@
-import {
-  Scene,
-  Mesh,
-  Vector3,
-  StandardMaterial,
-  Color3,
-  CreateBox,
-  TransformNode,
-  CreateSphere,
-  Quaternion,
-} from '@babylonjs/core';
 import FlightSystem from '../FlightSystem';
-import { type IEngineTrail } from './TrailMeshSystem';
-import EngineExhaustSystem from './EngineExhaustSystem';
 import type { ControlInput } from '../Controller';
 import RenderableObject from '../game/RenderableObject';
+import {
+  addToScene,
+  addVec3InPlace,
+  createBox,
+  createCsgFromMesh,
+  createMeshFromCsg,
+  createSphere,
+  createStandardMaterial,
+  createTransformNode,
+  csgUnion,
+  quatToEulerXYZTuple,
+  type Mesh,
+  type TransformNode,
+  type Vec3,
+  type Vec3Tuple,
+} from '@babylonjs/lite';
+import { toDegrees } from '@/utils/extensions';
 
 export default class Spaceship extends RenderableObject {
-  private color: Color3;
+  private color: Vec3Tuple;
   private flightSystem: FlightSystem;
-  protected engineTrail: IEngineTrail | null = null;
   protected engineNodes: TransformNode[] = [];
 
-  constructor(id: string, color: Color3) {
-    super(id);
+  constructor(modelPath: string, color: Vec3Tuple) {
+    super();
     this.color = color;
     this.flightSystem = new FlightSystem();
   }
 
-  create(scene: Scene): void {
-    this.scene = scene;
+  create(): void {
     this.mesh = this.createPlaceholderMesh();
 
     if (this.mesh) {
       this.initializeMesh(this.mesh);
       this.createDefaultEngineNodes();
-      this.engineTrail = new EngineExhaustSystem(this.engineNodes, scene);
     }
   }
 
   protected initializeMesh(mesh: Mesh): void {
-    mesh.name = this.id;
-
-    const material = new StandardMaterial(`${this.id}-material`, this.scene!);
+    const material = createStandardMaterial();
     material.diffuseColor = this.color;
-    material.specularColor = new Color3(0.2, 0.2, 0.2);
+    material.specularColor = [0.2, 0.2, 0.2];
     mesh.material = material;
 
     // Sync transform
     mesh.position.copyFrom(this.position);
-    mesh.rotationQuaternion ??= Quaternion.Identity();
     mesh.rotationQuaternion.copyFrom(this.orientation);
   }
 
   protected createDefaultEngineNodes(): void {
-    if (!this.mesh || !this.scene) return;
-
-    // Create a single engine node behind the ship
-    const engineNode = new TransformNode(`${this.id}-engine`, this.scene);
+    if (!this.mesh) return;
+    const engineNode = createTransformNode(`engine`, 0, 0, -1);
     engineNode.parent = this.mesh;
-    engineNode.position = new Vector3(0, 0, -1); // Behind the ship
     this.engineNodes.push(engineNode);
   }
 
@@ -67,36 +62,38 @@ export default class Spaceship extends RenderableObject {
   }
 
   protected createPlaceholderMesh(): Mesh {
-    const body = CreateBox(`${this.id}-body`, { width: 1, height: 0.5, depth: 2 });
-    const cockpit = CreateBox(`${this.id}-cockpit`, { width: 0.8, height: 0.6, depth: 0.8 });
+    const body = createBox($engine, { width: 1, height: 0.5, depth: 2 });
+    const cockpit = createBox($engine, { width: 0.8, height: 0.6, depth: 0.8 });
+
     cockpit.position.y = 0.5;
     cockpit.position.z = 0.3;
 
-    const leftWing = CreateBox(`${this.id}-leftWing`, { width: 2, height: 0.1, depth: 1 });
+    const leftWing = createBox($engine, { width: 2, height: 0.1, depth: 1 });
     leftWing.position.x = -1.5;
     leftWing.position.z = -0.3;
 
-    const rightWing = CreateBox(`${this.id}-rightWing`, { width: 2, height: 0.1, depth: 1 });
+    const rightWing = createBox($engine, { width: 2, height: 0.1, depth: 1 });
     rightWing.position.x = 1.5;
     rightWing.position.z = -0.3;
 
-    const merged = Mesh.MergeMeshes(
-      [body, cockpit, leftWing, rightWing],
-      true,
-      false,
-      undefined,
-      false,
-      true,
-    );
-
-    return merged || CreateSphere(`${this.id}-body`);
+    const csg1 = createCsgFromMesh(body);
+    const csg2 = createCsgFromMesh(cockpit);
+    const csgwind = createCsgFromMesh(leftWing);
+    const csgRight = createCsgFromMesh(rightWing);
+    const res = csgUnion(csg1, csg2);
+    const res2 = csgUnion(res, csgwind);
+    const res3 = csgUnion(res2, csgRight);
+    const mergedMesh = createMeshFromCsg($engine, res3)|| createSphere($engine);
+    addToScene($scene, mergedMesh);
+    return mergedMesh || createSphere($engine);
   }
 
   protected handleControlInput(input: ControlInput): void {
     if (input.flight) {
       const result = this.flightSystem.update(input.flight);
-      this.position.addInPlace(result.velocity); // delta
-      this.orientation.copyFrom(result.orientation); // absolute
+      addVec3InPlace(this.position, result.velocity);
+
+      this.orientation = result.orientation;
     }
   }
 
@@ -113,7 +110,7 @@ export default class Spaceship extends RenderableObject {
     return this.flightSystem;
   }
 
-  getVelocity(): Vector3 {
+  getVelocity(): Vec3 {
     return this.flightSystem.getVelocity();
   }
 
@@ -125,17 +122,12 @@ export default class Spaceship extends RenderableObject {
     return this.flightSystem.getThrustPercent();
   }
 
-  private static readonly _euler = new Vector3();
-
   getOrientationAngles(): { pitch: number; roll: number; yaw: number } {
-    const e = Spaceship._euler;
-    this.orientation.toEulerAnglesToRef(e);
-
-    const toDegrees = (rad: number) => (rad * 180) / Math.PI;
+    const [pitch, yaw, roll]  =  quatToEulerXYZTuple(this.orientation.x, this.orientation.y, this.orientation.z, this.orientation.w)
     return {
-      pitch: toDegrees(e.x),
-      yaw: toDegrees(e.y),
-      roll: toDegrees(e.z),
+      pitch: toDegrees(pitch),
+      yaw: toDegrees(yaw),
+      roll: toDegrees(roll),
     };
   }
 }

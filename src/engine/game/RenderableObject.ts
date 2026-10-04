@@ -1,18 +1,17 @@
 import GameObject from '@/engine/GameObject';
-import {
-  CreateSphere,
-  ImportMeshAsync,
-  Mesh,
-  Quaternion,
-  Scene,
-  TransformNode,
-  type ISceneLoaderAsyncResult,
-} from '@babylonjs/core';
 import useLogStore from '@/stores/logs';
+import {
+  addToScene,
+  createSphere,
+  getContainerMeshes,
+  loadGltf,
+  removeFromScene,
+  type AssetContainer,
+  type Mesh,
+  type TransformNode,
+} from '@babylonjs/lite';
 
 export default class RenderableObject extends GameObject {
-  protected scene: Scene | null = null;
-
   // the following two properties come from ISceneLoaderAsyncResult
   // we'll keep more properties in the future if we need them
   protected mesh: Mesh | null = null;
@@ -20,14 +19,12 @@ export default class RenderableObject extends GameObject {
 
   protected modelPath: string = '';
   logger: ReturnType<typeof useLogStore>;
-  constructor(id: string, modelPath: string) {
-    super(id);
-    this.modelPath = modelPath;
+  constructor() {
+    super();
     this.logger = useLogStore();
   }
 
-  create(scene: Scene): void {
-    this.scene = scene;
+  create(): void {
     this.mesh = this.createPlaceholderMesh();
   }
 
@@ -37,7 +34,6 @@ export default class RenderableObject extends GameObject {
 
     this.mesh.position.copyFrom(this.position);
 
-    this.mesh.rotationQuaternion ??= Quaternion.Identity();
     this.mesh.rotationQuaternion.copyFrom(this.orientation);
   }
 
@@ -46,26 +42,30 @@ export default class RenderableObject extends GameObject {
   }
 
   protected createPlaceholderMesh(): Mesh {
-    const body = CreateSphere(`${this.id}-placeHolderMesh`);
+    const body = createSphere($engine);
+    addToScene($scene, body);
     return body;
   }
 
   // RenderableObject
-  protected async loadModelAsync(): Promise<void> {
-    this.logger.log('Begin load model of renderable:' + this.id)
-    if (!this.scene || !this.modelPath) return;
-    const result = await ImportMeshAsync(this.modelPath, this.scene);
-    if (this.disposed) {
-      result.meshes[0]?.dispose();
+  protected async loadModelAsync(pmodelPath?: string): Promise<void> {
+    this.logger.log('Begin load model of renderable:');
+    if (!this.modelPath && !pmodelPath) return;
+    if (pmodelPath) this.modelPath = pmodelPath;
+
+    const container = await loadGltf($engine, this.modelPath);
+
+    if (this.mesh) removeFromScene($scene, this.mesh);
+
+    if (this.disposed) { // just in case theres a race
       return;
     }
+    addToScene($scene, container);
 
-    this.mesh?.dispose();
-    this.mesh = result.meshes[0] as Mesh;
-    this.mesh.name = this.id;
-    this.onModelLoaded(result);
-        this.logger.log('end load model of renderable:' + this.id)
+    this.mesh = getContainerMeshes(container)[0];
+    this.onModelLoaded(container);
+    this.logger.log('end load model of renderable:');
   }
 
-  protected onModelLoaded(_result: ISceneLoaderAsyncResult): void {}
+  protected onModelLoaded(_result: AssetContainer): void {}
 }

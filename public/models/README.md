@@ -5,18 +5,7 @@ Place your `.glb` or `.gltf` model files in this directory.
 ## Usage with CapitalShip
 
 ```typescript
-import { CapitalShip } from '@/engine';
-import { Color3 } from '@babylonjs/core';
-
-// Create a capital ship with a custom model
-const capitalShip = new CapitalShip(
-  'my-capital-ship',
-  new Color3(0.5, 0.5, 0.8), // Color (optional tint)
-  '/models/your-model.glb'   // Path to your GLB file
-);
-
-// Add to scene (async)
-await capitalShip.create(scene);
+//example was out of date
 ```
 
 ## Model Requirements

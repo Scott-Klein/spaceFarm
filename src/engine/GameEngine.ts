@@ -1,9 +1,9 @@
-import { Scene, HemisphericLight, Vector3, Color3 } from '@babylonjs/core';
 import GameObject from './GameObject';
 import CameraController from './CameraController';
 import InputManager from './InputManager';
 import Spaceship from './ships/Spaceship';
 import type { useGameStore } from '@/stores/gameState';
+import { addToScene, createHemisphericLight, onBeforeRender } from '@babylonjs/lite';
 
 type GameStore = ReturnType<typeof useGameStore>;
 
@@ -19,12 +19,12 @@ export type StateUpdateCallback = (state: {
 export default class GameEngine {
   private readonly TICK_RATE = 120; // 120hz phyics rate no matter our fps
   private readonly DELTA_RATE: number;
-  private scene: Scene;
+
   private cameraController: CameraController;
   private inputManager: InputManager;
-  private gameObjects: Map<string, GameObject> = new Map();
+  private gameObjects: GameObject[] = [];
+  private player: GameObject | null = null;
   private selectedObject: GameObject | null = null;
-  private lastTime: number = performance.now();
 
   /**
    * Accumulates time from rendering that the physics engine 'pays off'
@@ -33,10 +33,9 @@ export default class GameEngine {
   private accumulator: number = 0;
   private stateUpdateCallback: StateUpdateCallback | null = null;
 
-  constructor(scene: Scene, canvas: HTMLCanvasElement, gameStore: GameStore) {
-    this.scene = scene;
-    this.cameraController = new CameraController(scene, canvas, gameStore);
-    this.inputManager = new InputManager(scene);
+  constructor() {
+    this.cameraController = new CameraController();
+    this.inputManager = new InputManager();
 
     this.setupScene();
     this.setupGameLoop();
@@ -46,20 +45,16 @@ export default class GameEngine {
 
   private setupScene(): void {
     // Set space background color (dark blue/black)
-    this.scene.clearColor = new Color3(0.01, 0.04, 0.04).toColor4();
+    $scene.clearColor =  { r: 0.01, g: 0.04, b:0.04, a: 1}
 
     // Add ambient light
-    const light = new HemisphericLight('ambient', new Vector3(1, 1, 0.6), this.scene);
-    light.intensity = 0.01;
+    const light = createHemisphericLight([1, 1, 1], 0.01);
+    addToScene($scene, light);
   }
 
   private setupGameLoop(): void {
-    this.scene.onBeforeRenderObservable.add(() => {
-      const currentTime = performance.now();
-      const deltaTime = currentTime - this.lastTime;
-      this.lastTime = currentTime;
-
-      this.update(deltaTime);
+    onBeforeRender($scene, (delta: number) => {
+      this.update(delta);
     });
   }
 
@@ -117,32 +112,27 @@ export default class GameEngine {
   }
 
   addGameObject(gameObject: GameObject): void {
-    gameObject.create(this.scene);
-    this.gameObjects.set(gameObject.id, gameObject);
+    gameObject.create();
+    this.gameObjects.push(gameObject);
   }
 
-  removeGameObject(id: string): void {
-    const gameObject = this.gameObjects.get(id);
-    if (gameObject) {
-      gameObject.dispose();
-      this.gameObjects.delete(id);
+  setPlayerObject(player: GameObject): void {
+    player.create();
+    this.gameObjects.push(player);
+    this.player = player;
+  }
+
+  getPlayer(): GameObject {
+    if (this.player) {
+      return this.player;
+    } else {
+      throw Error('Scene wasnt set up correctly, cant find a player?');
     }
   }
 
-  getGameObject(id: string): GameObject | undefined {
-    return this.gameObjects.get(id);
-  }
 
   getAllGameObjects(): GameObject[] {
-    return Array.from(this.gameObjects.values());
-  }
-
-  selectGameObject(id: string): void {
-    const gameObject = this.gameObjects.get(id);
-    if (gameObject) {
-      this.selectedObject = gameObject;
-      this.cameraController.setTarget(gameObject);
-    }
+    return this.gameObjects;
   }
 
   getSelectedObject(): GameObject | null {
@@ -155,10 +145,6 @@ export default class GameEngine {
 
   getCameraController(): CameraController {
     return this.cameraController;
-  }
-
-  getScene(): Scene {
-    return this.scene;
   }
 
   /**

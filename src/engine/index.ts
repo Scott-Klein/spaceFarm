@@ -1,7 +1,5 @@
 export { default as GameObject } from './GameObject';
 export { default as Spaceship } from './ships/Spaceship';
-export { default as CapitalShip } from './ships/CapitalShip';
-export { default as EngineParticleSystem } from './ships/EngineParticleSystem';
 export { default as GameEngine } from './GameEngine';
 export { default as InputManager } from './InputManager';
 export { default as CameraController } from './CameraController';
@@ -16,6 +14,5 @@ export type { ControlInput } from './Controller';
 export type { FlightInput } from './FlightSystem';
 export type { AIBehavior } from './controllers/AIController';
 export type { SceneConfig } from './SceneBuilder';
-export type { EngineType } from './ships/EngineParticleSystem';
 export type { NetworkInput } from './controllers/MultiplayerController';
 export type { StateUpdateCallback } from './GameEngine';

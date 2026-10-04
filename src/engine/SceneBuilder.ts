@@ -1,11 +1,17 @@
-import { Scene, Vector3, Color3, CreateSphere, StandardMaterial } from '@babylonjs/core';
 import GameEngine from './GameEngine';
 import Spaceship from './ships/Spaceship';
 import HumanController from './controllers/HumanController';
 import AIController from './controllers/AIController';
-import CapitalShip from './ships/CapitalShip';
 import useLogStore from '@/stores/logs';
 import SpaceStation from './ships/stations/SpaceStation';
+import {
+  addToScene,
+  createSphere,
+  createStandardMaterial,
+  type Vec3,
+  type Vec3Tuple,
+} from '@babylonjs/lite';
+import MathBro from '@/utils/MathBro';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -14,16 +20,12 @@ export interface SceneConfig {
   aiShipCount?: number;
 }
 
-const DEBUG = true;
-
 export default class SceneBuilder {
   private gameEngine: GameEngine;
-  private scene: Scene;
   log: ReturnType<typeof useLogStore>;
 
-  constructor(gameEngine: GameEngine, scene: Scene) {
+  constructor(gameEngine: GameEngine) {
     this.gameEngine = gameEngine;
-    this.scene = scene;
     this.log = useLogStore();
     this.log.log('finished making scene builder');
   }
@@ -32,41 +34,12 @@ export default class SceneBuilder {
    * Build the complete game scene with default or custom configuration
    */
   buildScene(config: SceneConfig = {}): void {
-    const { asteroidCount = 80, spaceRadius = 150, landmarkCount = 5, aiShipCount = 15 } = config;
+    const { asteroidCount = 80, spaceRadius = 150, aiShipCount = 15 } = config;
 
     this.createAsteroidField(asteroidCount, spaceRadius);
-    this.createLandmarks(landmarkCount, spaceRadius);
     this.createPlayerShip();
     this.createAIShips(aiShipCount);
     this.createSpaceStation();
-    // Select player ship to start
-    this.gameEngine.selectGameObject('player-capital');
-
-    if (DEBUG) {
-      //create a debug object
-      const debugPos = new Vector3(0, 0, 50); //straight in front i think
-      const debugColor = Color3.Purple();
-      this.createReferenceObject(debugPos, 11, debugColor, DEBUG);
-      this.log.log('woof');
-      // gonna find any ai controlled craft
-      const aiC = this.gameEngine
-        .getAllGameObjects()
-        .map((x) => x.getController())
-        .filter((con) => con instanceof AIController);
-      if (aiC) {
-        this.log.log('woof woof wee found a ai controller woof bark! :' + aiC.length);
-        const patrolAic = aiC.find((ai) => ai.getBehaviour === 'patrol');
-        setTimeout(() => {
-          this.log.log('TIMEOUT');
-          if (patrolAic) {
-            const patrolPoints = patrolAic.getPatrolPoints;
-            patrolPoints.forEach((v) => {
-              this.createReferenceObject(v, 11, debugColor, DEBUG);
-            });
-          }
-        }, 2000);
-      }
-    }
   }
 
   /**
@@ -76,32 +49,12 @@ export default class SceneBuilder {
     for (let i = 0; i < count; i++) {
       const position = this.randomSpacePosition(radius, 20); // Avoid origin within 20 units
       const size = 3 + Math.random() * 8; // 3-11 units
-      const color = new Color3(
+      const color: [number,number,number] = [
         0.2 + Math.random() * 0.6,
         0.2 + Math.random() * 0.6,
         0.3 + Math.random() * 0.5,
-      );
+      ];
       this.createReferenceObject(position, size, color);
-    }
-  }
-
-  /**
-   * Create large landmark asteroids at specific locations
-   */
-  private createLandmarks(count: number, _radius: number): void {
-    const landmarks = [
-      { pos: new Vector3(80, 30, 60), size: 20, color: new Color3(1, 0.5, 0) },
-      { pos: new Vector3(-90, -40, 70), size: 25, color: new Color3(0.5, 0, 1) },
-      { pos: new Vector3(100, 50, -80), size: 18, color: new Color3(0, 1, 0.5) },
-      { pos: new Vector3(-70, -30, -90), size: 22, color: new Color3(1, 0, 0.5) },
-      { pos: new Vector3(0, 100, 0), size: 30, color: new Color3(1, 1, 0.3) },
-    ];
-
-    for (let i = 0; i < Math.min(count, landmarks.length); i++) {
-      const landmark = landmarks[i];
-      if (landmark) {
-        this.createReferenceObject(landmark.pos, landmark.size, landmark.color);
-      }
     }
   }
 
@@ -109,40 +62,36 @@ export default class SceneBuilder {
    * Create the player-controlled spaceship
    */
   private createPlayerShip(): void {
-    const playerShip = new CapitalShip(
-      'player-capital',
-      new Color3(0.2, 0.6, 1),
-      '/models/MilCap2.glb',
-    );
-    playerShip.position = new Vector3(0, 0, 0);
+    const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1]);
+    playerShip.position = {x: 0, y: 0, z: 0};
 
     const humanController = new HumanController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
-
-    this.gameEngine.addGameObject(playerShip);
+    this.gameEngine.setPlayerObject(playerShip);
   }
 
   /**
    * Create AI-controlled spaceships with different behaviors
    */
   private createAIShips(count: number): void {
-    const configs = [
+    type Behavior = 'follow' | 'idle' | 'patrol';
+    const configs: { id: string; pos: Vec3; color: Vec3Tuple; behavior: Behavior }[] = [
       {
         id: 'ai-1',
-        pos: new Vector3(10, 0, 5),
-        color: new Color3(1, 0.2, 0.2),
+        pos: { x: 10, y: 0, z: 5 },
+        color: [1, 0.2, 0.2],
         behavior: 'patrol' as const,
       },
       {
         id: 'ai-2',
-        pos: new Vector3(-8, 0, -10),
-        color: new Color3(0.2, 1, 0.2),
+        pos: { x: -8, y: 0, z: -10 },
+        color: [0.2, 1, 0.2],
         behavior: 'follow' as const,
       },
       {
         id: 'ai-3',
-        pos: new Vector3(5, 0, -15),
-        color: new Color3(1, 1, 0.2),
+        pos: { x: 5, y: 0, z: -15 },
+        color: [1, 1, 0.2],
         behavior: 'idle' as const,
       },
     ];
@@ -158,7 +107,7 @@ export default class SceneBuilder {
 
       // If follow behavior, set target to player
       if (config.behavior === 'follow') {
-        const playerShip = this.gameEngine.getGameObject('player');
+        const playerShip = this.gameEngine.getPlayer();
         if (playerShip) {
           aiController.setTarget(playerShip);
         }
@@ -172,7 +121,7 @@ export default class SceneBuilder {
   private createSpaceStation(): void {
     const randomPos = this.randomSpacePosition(150);
 
-    const spaceStation = new SpaceStation('station1', '/models/SpaceStation1.glb');
+    const spaceStation = new SpaceStation('/models/SpaceStation1.glb');
     spaceStation.position = randomPos;
     this.gameEngine.addGameObject(spaceStation);
   }
@@ -181,28 +130,22 @@ export default class SceneBuilder {
    * Create a stationary reference object (asteroid/marker)
    */
   private createReferenceObject(
-    position: Vector3,
+    position: Vec3,
     size: number,
-    color: Color3,
+    color: [number, number, number],
     debugFlash = false,
   ): void {
-    const sphere = CreateSphere(
-      `ref-${Math.random().toString(36).substr(2, 9)}`,
-      { diameter: size },
-      this.scene,
-    );
-    sphere.position = position;
+    const sphere = createSphere($engine, { diameter: size });
+    sphere.position.copyFrom(position);
+    addToScene($scene, sphere);
 
-    const material = new StandardMaterial(
-      `refMat-${Math.random().toString(36).substr(2, 9)}`,
-      this.scene,
-    );
+    const material = createStandardMaterial();
     material.diffuseColor = color;
-    material.emissiveColor = color.scale(0.3); // Slight glow
+    material.emissiveColor = color.map((c) => c * 0.3) as [number, number, number];
     sphere.material = material;
     if (debugFlash) {
       setInterval(() => {
-        material.diffuseColor = Color3.Random();
+        material.diffuseColor = [Math.random(), Math.random(), Math.random()];
       }, 1000); // new color every second
     }
   }
@@ -210,8 +153,8 @@ export default class SceneBuilder {
   /**
    * Generate a random position in 3D space, optionally avoiding origin
    */
-  private randomSpacePosition(radius: number, minDistanceFromOrigin: number = 0): Vector3 {
-    let position: Vector3;
+  private randomSpacePosition(radius: number, minDistanceFromOrigin: number = 0): Vec3 {
+    let position: Vec3;
     let attempts = 0;
     const maxAttempts = 100;
 
@@ -219,9 +162,13 @@ export default class SceneBuilder {
       const x = (Math.random() - 0.5) * radius * 2;
       const y = (Math.random() - 0.5) * radius * 2;
       const z = (Math.random() - 0.5) * radius * 2;
-      position = new Vector3(x, y, z);
+      position = { x, y, z };
       attempts++;
-    } while (position.length() < minDistanceFromOrigin && attempts < maxAttempts);
+    } while (
+      MathBro.vec3Length(position) <
+        minDistanceFromOrigin &&
+      attempts < maxAttempts
+    );
 
     return position;
   }

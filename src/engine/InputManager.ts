@@ -1,5 +1,3 @@
-import { Scene } from '@babylonjs/core';
-
 export type KeyCommand =
   | 'forward'
   | 'backward'
@@ -22,7 +20,7 @@ export default class InputManager {
   private keyJustPressed = new Set<string>();
   private lastPressedKeys = new Set<string>();
 
-  constructor(scene: Scene) {
+  constructor() {
     // LEFT-HAND ONLY flight control scheme
 
     // Throttle control - z/x
@@ -48,24 +46,10 @@ export default class InputManager {
     // Camera toggle - C
     this.keyBindings.set('c', 'toggleCamera');
 
-    // Listen for keyboard events
-    scene.onKeyboardObservable.add((kbInfo) => {
-      const key = kbInfo.event.key.toLowerCase();
-
-      if (kbInfo.type === 1) {
-        // KEYDOWN
-        this.keysPressed.add(key);
-
-        // Track newly pressed keys for single-press events
-        if (!this.lastPressedKeys.has(key)) {
-          this.keyJustPressed.add(key);
-        }
-      } else if (kbInfo.type === 2) {
-        // KEYUP
-        this.keysPressed.delete(key);
-        this.lastPressedKeys.delete(key);
-      }
-    });
+    
+    // attach listeners, disposed of in dispose!
+    window.addEventListener('keydown', this.handleKeyDown);
+    window.addEventListener('keyup', this.handleKeyUp)
   }
 
   isCommandActive(command: KeyCommand): boolean {
@@ -108,5 +92,25 @@ export default class InputManager {
     // Update key press tracking
     this.lastPressedKeys = new Set(this.keysPressed);
     this.keyJustPressed.clear();
+  }
+
+  handleKeyDown = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    this.keysPressed.add(key);
+
+    if (!this.lastPressedKeys.has(key)) {
+      this.keyJustPressed.add(key);
+    }
+  };
+
+  handleKeyUp = (event: KeyboardEvent) => {
+    const key = event.key.toLowerCase();
+    this.keysPressed.delete(key);
+    this.lastPressedKeys.delete(key);
+  };
+
+  dispose(): void {
+    window.removeEventListener('keydown', this.handleKeyUp);
+    window.removeEventListener('keyup', this.handleKeyUp)
   }
 }

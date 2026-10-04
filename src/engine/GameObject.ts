@@ -1,22 +1,21 @@
-import { Quaternion, Scene, Vector3 } from '@babylonjs/core';
+import { addVec3InPlace, type Quat, type Vec3 } from '@babylonjs/lite';
 import type Controller from './Controller';
 import type { ControlInput } from './Controller';
+import { multiplyQuatInPlace, normalizeQuat, quatFromEuler } from '@/utils/extensions';
 
 export default abstract class GameObject {
-  public position: Vector3;
-  public orientation: Quaternion;   // was rotation: Vector3
-  public id: string;
+  public position: Vec3;
+  public orientation: Quat;   // was rotation: Vector3
   protected disposed = false;
   private controller: Controller | null = null;
   private lastInput: ControlInput | null = null;
 
-  constructor(id: string) {
-    this.id = id;
-    this.position = Vector3.Zero();
-    this.orientation = Quaternion.Identity();
+  constructor() {
+    this.position = { x: 0, y: 0, z: 0};
+    this.orientation = { x: 0, y: 0, z: 0, w: 1 }; // identity quaternion, no transforms yet
   }
 
-  abstract create(scene: Scene): void;
+  abstract create(): void;
 
   updateRender(deltaTime: number): void {
     if (this.controller) {
@@ -35,13 +34,9 @@ export default abstract class GameObject {
 
   // Override this method in subclasses to handle control input differently
   protected handleControlInput(input: ControlInput): void {
-    if (input.movement) this.position.addInPlace(input.movement);
+    if (input.movement) addVec3InPlace(this.position, input.movement); //TODO: input.movement isn't a vec3 find out what it is. this method might not be right
     if (input.rotation) {
-      // body-local delta, applied on the right
-      this.orientation.multiplyInPlace(
-        Quaternion.FromEulerVector(input.rotation)
-      );
-      this.orientation.normalize();   // fight float drift
+      this.orientation = normalizeQuat(multiplyQuatInPlace(this.orientation, quatFromEuler(input.rotation)))
     }
   }
 

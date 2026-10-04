@@ -1,10 +1,11 @@
-import { Vector3 } from '@babylonjs/core';
+
 import type GameObject from './GameObject';
 import type { FlightInput } from './FlightSystem';
+import type { Vec3 } from '@babylonjs/lite';
 
 export interface ControlInput {
-  movement?: Vector3;
-  rotation?: Vector3;
+  movement?: Vec3;
+  rotation?: Vec3;
   flight?: FlightInput;
   action?: string;
 }

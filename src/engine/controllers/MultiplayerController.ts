@@ -1,9 +1,9 @@
-import { Vector3 } from '@babylonjs/core';
+import type { Vec3 } from '@babylonjs/lite';
 import Controller, { type ControlInput } from '../Controller';
 
 export interface NetworkInput {
-  movement: Vector3;
-  rotation?: Vector3;
+  movement: Vec3;
+  rotation?: Vec3;
   timestamp: number;
 }
 
@@ -48,7 +48,7 @@ export default class MultiplayerController extends Controller {
   }
 
   // Simulate sending input to network
-  sendInput(movement: Vector3, rotation?: Vector3): void {
+  sendInput(movement: Vec3, rotation?: Vec3): void {
     // In a real implementation, this would send to a server
     console.log('Sending input to network:', { movement, rotation });
   }

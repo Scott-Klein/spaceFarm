@@ -1,16 +1,17 @@
-import { Quaternion, Vector3 } from '@babylonjs/core';
+import { normalizeVec3, subtractVec3, type Vec3 } from '@babylonjs/lite';
 import Controller, { type ControlInput } from '../Controller';
 import type { FlightInput } from '../FlightSystem';
 import GameObject from '../GameObject';
 import useLogStore from '@/stores/logs';
 import MathBro from '@/utils/MathBro';
+import { invertQuat, rotateVec3ByQuat, vec3Length } from '@/utils/extensions';
 
 export type AIBehavior = 'idle' | 'patrol' | 'follow' | 'flee';
 
 export default class AIController extends Controller {
   private behavior: AIBehavior;
   private target: GameObject | null = null;
-  private patrolPoints: Vector3[] = [];
+  private patrolPoints: Vec3[] = [];
   private currentPatrolIndex = 0;
   private patrolRadius = 815;
   private patrolSatisfactiondistance = 1;
@@ -34,7 +35,7 @@ export default class AIController extends Controller {
     return this.behavior;
   }
 
-  public get getPatrolPoints(): Vector3[] {
+  public get getPatrolPoints(): Vec3[] {
     return this.patrolPoints;
   }
 
@@ -42,7 +43,7 @@ export default class AIController extends Controller {
     this.target = target;
   }
 
-  setPatrolPoints(points: Vector3[]): void {
+  setPatrolPoints(points: Vec3[]): void {
     this.patrolPoints = points;
     this.currentPatrolIndex = 0;
   }
@@ -86,9 +87,9 @@ export default class AIController extends Controller {
 
     const targetPoint = this.patrolPoints[this.currentPatrolIndex];
     if (!targetPoint) return null;
-
-    const direction = targetPoint.subtract(this.controlledObject.position);
-    const distance = direction.length();
+    
+    const direction = subtractVec3(targetPoint, this.controlledObject.position);
+    const distance = vec3Length(direction);
 
     // If close enough to patrol point, move to next one
     if (distance < this.patrolSatisfactiondistance) {
@@ -111,10 +112,11 @@ export default class AIController extends Controller {
   private updateFollow(): ControlInput | null {
     if (!this.controlledObject || !this.target) return null;
 
-    const direction = this.target.position.subtract(this.controlledObject.position);
-    const distance = direction.length();
+    const direction = subtractVec3(this.target.position, this.controlledObject.position);
 
-    const desiredDirection = direction.normalize();
+    const distance = vec3Length(direction);
+
+    const desiredDirection = normalizeVec3(direction);
 
     // Calculate flight controls to point towards target
     const yaw = Math.atan2(desiredDirection.x, desiredDirection.z);
@@ -135,16 +137,16 @@ export default class AIController extends Controller {
 
   private updateFlee(): ControlInput | null {
     if (!this.controlledObject || !this.target) return null;
+    const direction = subtractVec3(this.controlledObject.position, this.target.position);
 
-    const direction = this.controlledObject.position.subtract(this.target.position);
-    const distance = direction.length();
+    const distance = vec3Length(direction);
 
     // Only flee if target is close
     if (distance > 20) {
       return { flight: { thrust: 0.3, pitch: 0, roll: 0, yaw: 0 } };
     }
-
-    const desiredDirection = direction.normalize();
+    
+    const desiredDirection = normalizeVec3(direction);;
 
     // Calculate flight controls to flee
     const yaw = Math.atan2(desiredDirection.x, desiredDirection.z);
@@ -161,7 +163,7 @@ export default class AIController extends Controller {
   }
 
   private generatePatrolPoints(): void {
-    const center = this.controlledObject?.position || Vector3.Zero();
+    const center = this.controlledObject?.position || {x:0, y:0, z:0};
     const numPoints = 4;
 
     for (let i = 0; i < numPoints; i++) {
@@ -170,13 +172,11 @@ export default class AIController extends Controller {
     }
   }
 
-  private computeSteering(targetPos: Vector3): { yaw: number; pitch: number } {
+  private computeSteering(targetPos: Vec3): { yaw: number; pitch: number } {
     const obj = this.controlledObject!;
-    const toTarget = targetPos.subtract(obj.position).normalize();
+    const toTarget = normalizeVec3(subtractVec3(targetPos, obj.position))
 
-    const localDir = new Vector3();
-    toTarget.rotateByQuaternionToRef(Quaternion.Inverse(obj.orientation), localDir);
-
+    const localDir = rotateVec3ByQuat(invertQuat(obj.orientation), toTarget);
     const yaw = Math.atan2(localDir.x, localDir.z);
     const pitch = -Math.atan2(localDir.y, Math.hypot(localDir.x, localDir.z));
     return { yaw, pitch };

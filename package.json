@@ -18,9 +18,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
-    "@babylonjs/core": "^8.40.1",
-    "@babylonjs/loaders": "^8.40.1",
-    "@babylonjs/materials": "^8.40.1",
+    "@babylonjs/lite": "^1.31.0",
     "@phosphor-icons/vue": "^2.2.1",
     "@tailwindcss/vite": "^4.1.17",
     "pinia": "^3.0.4",
