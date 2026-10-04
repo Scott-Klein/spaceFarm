@@ -26,12 +26,18 @@ export default class Spaceship extends RenderableObject {
 
   constructor(modelPath: string, color: Vec3Tuple) {
     super();
+    this.modelPath = modelPath;
     this.color = color;
     this.flightSystem = new FlightSystem();
   }
 
   create(): void {
-    this.mesh = this.createPlaceholderMesh();
+    if (this.modelPath) {
+      this.loadModelAsync();
+    } else {
+      this.mesh = this.createPlaceholderMesh();
+    }
+
 
     if (this.mesh) {
       this.initializeMesh(this.mesh);

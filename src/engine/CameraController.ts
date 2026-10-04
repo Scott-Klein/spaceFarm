@@ -24,7 +24,7 @@ export default class CameraController {
 
   setTarget(gameObject: GameObject | null): void {
     this.target = gameObject;
-    if (this.target) this.camera.target = this.target.position;
+    this.update();
   }
 
   getTarget(): GameObject | null {
@@ -34,7 +34,11 @@ export default class CameraController {
   update(): void {
     if (!this.target) return;
     // keep orbiting the ship without touching alpha/beta/radius
-    this.camera.target = this.target.position;
+    // camera.target is an ObservableVec3; copy into it (don't replace it) so the camera is marked dirty
+    const { x, y, z } = this.target.position;
+    this.camera.target.x = x;
+    this.camera.target.y = y;
+    this.camera.target.z = z;
   }
 
   getCamera(): ArcRotateCamera {
