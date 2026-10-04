@@ -10,5 +10,6 @@ declare global {
 const initialise = (eng: EngineContext, scene: SceneContext, canvas: HTMLCanvasElement) => {
   globalThis.$engine = eng;
   globalThis.$scene = scene;
+  globalThis.$canvas = canvas;
 };
 export { initialise };

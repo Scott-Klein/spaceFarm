@@ -3,6 +3,7 @@ import useLogStore from '@/stores/logs';
 import {
   addToScene,
   createSphere,
+  createStandardMaterial,
   getContainerMeshes,
   loadGltf,
   removeFromScene,
@@ -43,6 +44,8 @@ export default class RenderableObject extends GameObject {
 
   protected createPlaceholderMesh(): Mesh {
     const body = createSphere($engine);
+    // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
+    body.material = createStandardMaterial();
     addToScene($scene, body);
     return body;
   }
@@ -53,7 +56,13 @@ export default class RenderableObject extends GameObject {
     if (!this.modelPath && !pmodelPath) return;
     if (pmodelPath) this.modelPath = pmodelPath;
 
-    const container = await loadGltf($engine, this.modelPath);
+    let container;
+    try {
+      container = await loadGltf($engine, this.modelPath);
+    } catch (e) {
+      console.error('[dbg] gltf load FAILED', this.modelPath, e);
+      return;
+    }
 
     if (this.mesh) removeFromScene($scene, this.mesh);
 

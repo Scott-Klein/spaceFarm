@@ -19,6 +19,7 @@ export default class CameraController {
     this.camera = createArcRotateCamera(-Math.PI / 2, Math.PI / 2, 5, { x: 0, y: 0, z: 0 });
 
     this.logger.log('The camera controller is setup.');
+    this.setArcRotateMode();
   }
 
   setTarget(gameObject: GameObject | null): void {

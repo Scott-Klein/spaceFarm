@@ -35,6 +35,8 @@ export default class Spaceship extends RenderableObject {
 
     if (this.mesh) {
       this.initializeMesh(this.mesh);
+      // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
+      addToScene($scene, this.mesh);
       this.createDefaultEngineNodes();
     }
   }
@@ -83,9 +85,9 @@ export default class Spaceship extends RenderableObject {
     const res = csgUnion(csg1, csg2);
     const res2 = csgUnion(res, csgwind);
     const res3 = csgUnion(res2, csgRight);
-    const mergedMesh = createMeshFromCsg($engine, res3)|| createSphere($engine);
-    addToScene($scene, mergedMesh);
-    return mergedMesh || createSphere($engine);
+    const csgMesh = createMeshFromCsg($engine, res3);
+    const mergedMesh = csgMesh || createSphere($engine);
+    return mergedMesh;
   }
 
   protected handleControlInput(input: ControlInput): void {

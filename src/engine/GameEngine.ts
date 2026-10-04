@@ -2,10 +2,10 @@ import GameObject from './GameObject';
 import CameraController from './CameraController';
 import InputManager from './InputManager';
 import Spaceship from './ships/Spaceship';
-import type { useGameStore } from '@/stores/gameState';
+//import type { useGameStore } from '@/stores/gameState';
 import { addToScene, createHemisphericLight, onBeforeRender } from '@babylonjs/lite';
 
-type GameStore = ReturnType<typeof useGameStore>;
+//type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
 export type StateUpdateCallback = (state: {
@@ -45,10 +45,10 @@ export default class GameEngine {
 
   private setupScene(): void {
     // Set space background color (dark blue/black)
-    $scene.clearColor =  { r: 0.01, g: 0.04, b:0.04, a: 1}
+    $scene.clearColor =  { r: 0.01, g: 0.04, b: 0.04, a: 1 }
 
     // Add ambient light
-    const light = createHemisphericLight([1, 1, 1], 0.01);
+    const light = createHemisphericLight([1, 1, 1], 0.91);
     addToScene($scene, light);
   }
 
@@ -120,6 +120,7 @@ export default class GameEngine {
     player.create();
     this.gameObjects.push(player);
     this.player = player;
+    this.cameraController.setTarget(player);
   }
 
   getPlayer(): GameObject {

@@ -29,9 +29,12 @@ const canvasRef = ref<HTMLCanvasElement | null>(null);
 const gameStore = useGameStore();
 let babylonSetupResult: Awaited<ReturnType<typeof setupBabylonScene>>;
 let gameEngine: GameEngine;
+let unmounted = false;
 onMounted(async () => {
-  if (!canvasRef.value) return;
-
+  if (!canvasRef.value) {
+    return;
+  }
+  try {
   babylonSetupResult = await setupBabylonScene({
     canvas: canvasRef.value,
     onSceneReady: () => {
@@ -52,9 +55,15 @@ onMounted(async () => {
       sceneBuilder.buildScene();
     },
   });
+  // unmounted (or hot-reloaded) while we were still setting up: tear this engine down
+  if (unmounted) babylonSetupResult.dispose();
+  } catch (e) {
+    console.error('[dbg] setup FAILED', e);
+  }
 });
 
 onUnmounted(() => {
+  unmounted = true;
   if (babylonSetupResult) {
     babylonSetupResult.dispose();
   }

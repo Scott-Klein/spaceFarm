@@ -137,12 +137,13 @@ export default class SceneBuilder {
   ): void {
     const sphere = createSphere($engine, { diameter: size });
     sphere.position.copyFrom(position);
-    addToScene($scene, sphere);
 
+    // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
     const material = createStandardMaterial();
     material.diffuseColor = color;
     material.emissiveColor = color.map((c) => c * 0.3) as [number, number, number];
     sphere.material = material;
+    addToScene($scene, sphere);
     if (debugFlash) {
       setInterval(() => {
         material.diffuseColor = [Math.random(), Math.random(), Math.random()];
