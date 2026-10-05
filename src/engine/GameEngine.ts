@@ -3,7 +3,7 @@ import CameraController from './CameraController';
 import InputManager from './InputManager';
 import Spaceship from './ships/Spaceship';
 //import type { useGameStore } from '@/stores/gameState';
-import { onBeforeRender, type SpotLight } from '@babylonjs/lite';
+import { onBeforeRender  } from '@babylonjs/lite';
 import LightSystem from './LightSystem';
 
 //type GameStore = ReturnType<typeof useGameStore>;

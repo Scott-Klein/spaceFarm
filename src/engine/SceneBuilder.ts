@@ -13,7 +13,6 @@ import {
   type Vec3Tuple,
 } from '@babylonjs/lite';
 import MathBro from '@/utils/MathBro';
-import RenderableObject from './game/RenderableObject';
 import Planet from './game/Planet';
 
 export interface SceneConfig {
