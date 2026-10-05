@@ -16,7 +16,7 @@ import {
 export default class RenderableObject extends GameObject {
   // the following two properties come from ISceneLoaderAsyncResult
   // we'll keep more properties in the future if we need them
-  protected mesh: Mesh | null = null;
+  protected mesh: Mesh[]  = [];
   protected transformNodes: TransformNode[] = [];
   // root that parents every mesh of this object; position/orientation are applied here
   protected root: TransformNode | null = null;
@@ -55,17 +55,17 @@ export default class RenderableObject extends GameObject {
     }
   }
 
-  getMesh(): Mesh | null {
+  getMesh(): Mesh[] {
     return this.mesh;
   }
 
-  protected createPlaceholderMesh(): Mesh {
+  protected createPlaceholderMesh(): Mesh[] {
     const body = createSphere($engine);
     // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
     body.material = createStandardMaterial();
     addToScene($scene, body);
     this.attachToRoot([body]);
-    return body;
+    return [body];
   }
 
   // RenderableObject
@@ -90,7 +90,7 @@ export default class RenderableObject extends GameObject {
     addToScene($scene, container);
 
     const meshes = getContainerMeshes(container);
-    this.mesh = meshes[0];
+    this.mesh = meshes;
     // glTF puts every mesh under its own root node(s) (container.entities), which is what
     // actually has to move. Parent those to our root, not the meshes themselves.
     this.attachToRoot(container.entities.filter((e): e is TransformNode => 'rotationQuaternion' in e));

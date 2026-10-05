@@ -6,6 +6,7 @@ import useLogStore from '@/stores/logs';
 import SpaceStation from './ships/stations/SpaceStation';
 import {
   addToScene,
+  createHemisphericLight,
   createSphere,
   createStandardMaterial,
   type Vec3,
@@ -35,7 +36,9 @@ export default class SceneBuilder {
    */
   buildScene(config: SceneConfig = {}): void {
     const { asteroidCount = 80, spaceRadius = 150, aiShipCount = 15 } = config;
-
+    $scene.clearColor = { r: 0.01, g: 0.04, b: 0.04, a: 1 };
+    const light = createHemisphericLight([1, 1, 1], 0.001);
+    addToScene($scene, light);
     this.createAsteroidField(asteroidCount, spaceRadius);
     this.createPlayerShip();
     this.createAIShips(aiShipCount);
@@ -49,7 +52,7 @@ export default class SceneBuilder {
     for (let i = 0; i < count; i++) {
       const position = this.randomSpacePosition(radius, 20); // Avoid origin within 20 units
       const size = 3 + Math.random() * 8; // 3-11 units
-      const color: [number,number,number] = [
+      const color: [number, number, number] = [
         0.2 + Math.random() * 0.6,
         0.2 + Math.random() * 0.6,
         0.3 + Math.random() * 0.5,
@@ -63,11 +66,12 @@ export default class SceneBuilder {
    */
   private createPlayerShip(): void {
     const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1]);
-    playerShip.position = {x: 0, y: 0, z: 0};
+    playerShip.position = { x: 500, y: 0, z: 0 };
 
     const humanController = new HumanController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
     this.gameEngine.setPlayerObject(playerShip);
+    this.gameEngine.lightSystem.RegisterGroup(playerShip, 'local');
   }
 
   /**
@@ -165,11 +169,7 @@ export default class SceneBuilder {
       const z = (Math.random() - 0.5) * radius * 2;
       position = { x, y, z };
       attempts++;
-    } while (
-      MathBro.vec3Length(position) <
-        minDistanceFromOrigin &&
-      attempts < maxAttempts
-    );
+    } while (MathBro.vec3Length(position) < minDistanceFromOrigin && attempts < maxAttempts);
 
     return position;
   }

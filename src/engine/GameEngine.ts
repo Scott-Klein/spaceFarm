@@ -3,7 +3,8 @@ import CameraController from './CameraController';
 import InputManager from './InputManager';
 import Spaceship from './ships/Spaceship';
 //import type { useGameStore } from '@/stores/gameState';
-import { addToScene, createHemisphericLight, onBeforeRender } from '@babylonjs/lite';
+import { onBeforeRender, type SpotLight } from '@babylonjs/lite';
+import LightSystem from './LightSystem';
 
 //type GameStore = ReturnType<typeof useGameStore>;
 
@@ -20,6 +21,7 @@ export default class GameEngine {
   private readonly TICK_RATE = 120; // 120hz phyics rate no matter our fps
   private readonly DELTA_RATE: number;
 
+  public lightSystem: LightSystem;
   private cameraController: CameraController;
   private inputManager: InputManager;
   private gameObjects: GameObject[] = [];
@@ -36,21 +38,12 @@ export default class GameEngine {
   constructor() {
     this.cameraController = new CameraController();
     this.inputManager = new InputManager();
-
-    this.setupScene();
+    this.lightSystem = new LightSystem();
     this.setupGameLoop();
 
     this.DELTA_RATE = (1000) / this.TICK_RATE;
   }
 
-  private setupScene(): void {
-    // Set space background color (dark blue/black)
-    $scene.clearColor =  { r: 0.01, g: 0.04, b: 0.04, a: 1 }
-
-    // Add ambient light
-    const light = createHemisphericLight([1, 1, 1], 0.41);
-    addToScene($scene, light);
-  }
 
   private setupGameLoop(): void {
     onBeforeRender($scene, (delta: number) => {

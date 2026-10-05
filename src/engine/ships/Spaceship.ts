@@ -35,7 +35,7 @@ export default class Spaceship extends RenderableObject {
       await this.loadModelAsync();
     } else {
       this.mesh = this.createPlaceholderMesh();
-      this.attachToRoot([this.mesh]);
+      this.attachToRoot(this.mesh);
     }
 
 
@@ -46,11 +46,13 @@ export default class Spaceship extends RenderableObject {
     }
   }
 
-  protected initializeMesh(mesh: Mesh): void {
+  protected initializeMesh(mesh: Mesh[]): void {
     const material = createStandardMaterial();
     material.diffuseColor = this.color;
     material.specularColor = [0.2, 0.2, 0.2];
-    mesh.material = material;
+    for (const m of mesh) {
+      m.material = material;
+    }
 
     // Sync transform (on the root, which parents every mesh)
     if (this.root) {
@@ -70,7 +72,7 @@ export default class Spaceship extends RenderableObject {
     return this.engineNodes;
   }
 
-  protected createPlaceholderMesh(): Mesh {
+  protected createPlaceholderMesh(): Mesh[] {
     const body = createBox($engine, { width: 1, height: 0.5, depth: 2 });
     const cockpit = createBox($engine, { width: 0.8, height: 0.6, depth: 0.8 });
 
@@ -94,7 +96,7 @@ export default class Spaceship extends RenderableObject {
     const res3 = csgUnion(res2, csgRight);
     const csgMesh = createMeshFromCsg($engine, res3);
     const mergedMesh = csgMesh || createSphere($engine);
-    return mergedMesh;
+    return [mergedMesh];
   }
 
   protected handleControlInput(input: ControlInput): void {
