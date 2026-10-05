@@ -13,6 +13,8 @@ import {
   type Vec3Tuple,
 } from '@babylonjs/lite';
 import MathBro from '@/utils/MathBro';
+import RenderableObject from './game/RenderableObject';
+import Planet from './game/Planet';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -43,6 +45,7 @@ export default class SceneBuilder {
     await this.createPlayerShip();
     await this.createAIShips(aiShipCount);
     await this.createSpaceStation();
+    this.createPlanet();
   }
 
   /**
@@ -73,6 +76,13 @@ export default class SceneBuilder {
     // create() must finish first: light group setup needs the meshes
     await this.gameEngine.setPlayerObject(playerShip);
     this.gameEngine.lightSystem.RegisterGroup(playerShip, 'local');
+  }
+
+  private async createPlanet(): Promise<void> {
+    const planetObj = new Planet();
+    planetObj.position = { x: 0, y: 0, z: -400 };
+    await planetObj.create();
+    this.gameEngine.lightSystem.RegisterGroup(planetObj, 'planet');
   }
 
   /**

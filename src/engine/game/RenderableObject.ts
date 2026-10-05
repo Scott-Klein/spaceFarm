@@ -36,7 +36,7 @@ export default class RenderableObject extends GameObject {
       if (!container) return;
       meshes = getContainerMeshes(container);
     } else {
-      meshes = this.createPlaceholderMesh();
+      meshes = this.createMeshes();
     }
 
     if (this.disposed) return; // just in case theres a race
@@ -101,7 +101,7 @@ export default class RenderableObject extends GameObject {
     return this.mesh;
   }
 
-  protected createPlaceholderMesh(): Mesh[] {
+  protected createMeshes(): Mesh[] {
     return [createSphere($engine)];
   }
 
