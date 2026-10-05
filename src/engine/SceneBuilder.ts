@@ -100,7 +100,7 @@ export default class SceneBuilder {
       const config = configs[i];
       if (!config) continue;
 
-      const aiShip = new Spaceship(config.id, config.color);
+      const aiShip = new Spaceship('', config.color);
       aiShip.position = config.pos;
 
       const aiController = new AIController(config.behavior);

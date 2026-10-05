@@ -3,6 +3,7 @@ import useLogStore from '@/stores/logs';
 import {
   addToScene,
   createSphere,
+  createTransformNode,
   createStandardMaterial,
   getContainerMeshes,
   loadGltf,
@@ -17,6 +18,8 @@ export default class RenderableObject extends GameObject {
   // we'll keep more properties in the future if we need them
   protected mesh: Mesh | null = null;
   protected transformNodes: TransformNode[] = [];
+  // root that parents every mesh of this object; position/orientation are applied here
+  protected root: TransformNode | null = null;
 
   protected modelPath: string = '';
   logger: ReturnType<typeof useLogStore>;
@@ -25,17 +28,31 @@ export default class RenderableObject extends GameObject {
     this.logger = useLogStore();
   }
 
-  create(): void {
+  async create(): Promise<void> {
     this.mesh = this.createPlaceholderMesh();
   }
 
   updateRender(deltaTime: number): void {
     super.updateRender(deltaTime);
-    if (!this.mesh) return;
+    if (!this.root) return;
 
-    this.mesh.position.copyFrom(this.position);
+    this.root.position.copyFrom(this.position);
+    this.root.rotationQuaternion.copyFrom(this.orientation);
+  }
 
-    this.mesh.rotationQuaternion.copyFrom(this.orientation);
+  getRoot(): TransformNode | null {
+    return this.root;
+  }
+
+  // create the root node (once) and parent the given top-level nodes to it
+  protected attachToRoot(nodes: TransformNode[]): void {
+    if (!this.root) {
+      this.root = createTransformNode(`${this.constructor.name}Root`);
+      addToScene($scene, this.root);
+    }
+    for (const n of nodes) {
+      if (!n.parent) n.parent = this.root;
+    }
   }
 
   getMesh(): Mesh | null {
@@ -47,6 +64,7 @@ export default class RenderableObject extends GameObject {
     // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
     body.material = createStandardMaterial();
     addToScene($scene, body);
+    this.attachToRoot([body]);
     return body;
   }
 
@@ -71,7 +89,11 @@ export default class RenderableObject extends GameObject {
     }
     addToScene($scene, container);
 
-    this.mesh = getContainerMeshes(container)[0];
+    const meshes = getContainerMeshes(container);
+    this.mesh = meshes[0];
+    // glTF puts every mesh under its own root node(s) (container.entities), which is what
+    // actually has to move. Parent those to our root, not the meshes themselves.
+    this.attachToRoot(container.entities.filter((e): e is TransformNode => 'rotationQuaternion' in e));
     this.onModelLoaded(container);
     this.logger.log('end load model of renderable:');
   }

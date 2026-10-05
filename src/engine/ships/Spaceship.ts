@@ -31,18 +31,18 @@ export default class Spaceship extends RenderableObject {
     this.flightSystem = new FlightSystem();
   }
 
-  create(): void {
+  async create(): Promise<void> {
     if (this.modelPath) {
-      this.loadModelAsync();
+      await this.loadModelAsync();
     } else {
       this.mesh = this.createPlaceholderMesh();
+      this.attachToRoot([this.mesh]);
     }
 
 
     if (this.mesh) {
       this.initializeMesh(this.mesh);
       // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
-      addToScene($scene, this.mesh);
       this.createDefaultEngineNodes();
     }
   }
@@ -53,15 +53,17 @@ export default class Spaceship extends RenderableObject {
     material.specularColor = [0.2, 0.2, 0.2];
     mesh.material = material;
 
-    // Sync transform
-    mesh.position.copyFrom(this.position);
-    mesh.rotationQuaternion.copyFrom(this.orientation);
+    // Sync transform (on the root, which parents every mesh)
+    if (this.root) {
+      this.root.position.copyFrom(this.position);
+      this.root.rotationQuaternion.copyFrom(this.orientation);
+    }
   }
 
   protected createDefaultEngineNodes(): void {
-    if (!this.mesh) return;
+    if (!this.root) return;
     const engineNode = createTransformNode(`engine`, 0, 0, -1);
-    engineNode.parent = this.mesh;
+    engineNode.parent = this.root;
     this.engineNodes.push(engineNode);
   }
 

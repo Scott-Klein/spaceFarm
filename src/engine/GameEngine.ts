@@ -48,7 +48,7 @@ export default class GameEngine {
     $scene.clearColor =  { r: 0.01, g: 0.04, b: 0.04, a: 1 }
 
     // Add ambient light
-    const light = createHemisphericLight([1, 1, 1], 0.01);
+    const light = createHemisphericLight([1, 1, 1], 0.41);
     addToScene($scene, light);
   }
 

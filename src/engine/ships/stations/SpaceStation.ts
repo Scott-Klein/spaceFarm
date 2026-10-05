@@ -8,7 +8,7 @@ export default class SpaceStation extends RenderableObject {
     this.modelPath = modelPath;
   }
 
-  create(): void {
-    this.loadModelAsync();
+  async create(): Promise<void> {
+    await this.loadModelAsync();
   }
 }

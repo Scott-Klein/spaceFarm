@@ -15,7 +15,7 @@ export default abstract class GameObject {
     this.orientation = { x: 0, y: 0, z: 0, w: 1 }; // identity quaternion, no transforms yet
   }
 
-  abstract create(): void;
+  abstract create(): Promise<void>;
 
   updateRender(deltaTime: number): void {
     if (this.controller) {
