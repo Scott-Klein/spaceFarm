@@ -20,44 +20,35 @@ import { toDegrees } from '@/utils/extensions';
 
 export default class Spaceship extends RenderableObject {
   private color: Vec3Tuple;
+  // must be known before create() runs; prepareMeshes stamps it on every mesh
+  private lightGroupId: string;
   private flightSystem: FlightSystem;
   protected engineNodes: TransformNode[] = [];
 
-  constructor(modelPath: string, color: Vec3Tuple) {
+  constructor(modelPath: string, color: Vec3Tuple, lightGroupId: string = '') {
     super();
+    this.lightGroupId = lightGroupId;
     this.modelPath = modelPath;
     this.color = color;
     this.flightSystem = new FlightSystem();
   }
 
   async create(): Promise<void> {
-    if (this.modelPath) {
-      await this.loadModelAsync();
-    } else {
-      this.mesh = this.createPlaceholderMesh();
-      this.attachToRoot(this.mesh);
-    }
-
-
-    if (this.mesh) {
-      this.initializeMesh(this.mesh);
-      // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
-      this.createDefaultEngineNodes();
-    }
+    await super.create();
+    this.createDefaultEngineNodes();
   }
 
-  protected initializeMesh(mesh: Mesh[]): void {
+  // runs inside create() before the meshes are added to the scene
+  protected prepareMeshes(meshes: Mesh[]): void {
+    super.prepareMeshes(meshes);
     const material = createStandardMaterial();
     material.diffuseColor = this.color;
     material.specularColor = [0.2, 0.2, 0.2];
-    for (const m of mesh) {
+    for (const m of meshes) {
       m.material = material;
-    }
-
-    // Sync transform (on the root, which parents every mesh)
-    if (this.root) {
-      this.root.position.copyFrom(this.position);
-      this.root.rotationQuaternion.copyFrom(this.orientation);
+      m.receiveShadows = true;
+      // light include/exclude filtering matches on mesh id
+      if (this.lightGroupId) m.id = this.lightGroupId;
     }
   }
 

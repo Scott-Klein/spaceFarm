@@ -9,7 +9,7 @@ import {
 } from '@babylonjs/lite';
 export interface BabylonSceneOptions {
   canvas: HTMLCanvasElement;
-  onSceneReady?: () => void;
+  onSceneReady?: () => void | Promise<void>;
 }
 
 async function setupBabylonScene(options: BabylonSceneOptions) {
@@ -26,8 +26,9 @@ async function setupBabylonScene(options: BabylonSceneOptions) {
   const scene = createSceneContext(engine);
   initialise(engine, scene, canvas)
   // Call the setup callback
+  // must finish before registerSceneWithShadowSupport: shadow lights/casters have to exist by then
   if (onSceneReady) {
-    onSceneReady();
+    await onSceneReady();
   }
 
   await registerSceneWithShadowSupport(scene);

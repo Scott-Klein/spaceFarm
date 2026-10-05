@@ -102,15 +102,17 @@ export default class GameEngine {
 
     // Update camera
     this.cameraController.update();
+
+    this.lightSystem.update();
   }
 
-  addGameObject(gameObject: GameObject): void {
-    gameObject.create();
+  async addGameObject(gameObject: GameObject): Promise<void> {
+    await gameObject.create();
     this.gameObjects.push(gameObject);
   }
 
-  setPlayerObject(player: GameObject): void {
-    player.create();
+  async setPlayerObject(player: GameObject): Promise<void> {
+    await player.create();
     this.gameObjects.push(player);
     this.player = player;
     this.cameraController.setTarget(player);

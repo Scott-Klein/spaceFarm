@@ -3,6 +3,9 @@ import {
     attachControl,
     createArcRotateCamera,
     createBox,
+    createCsgFromMesh,
+    createMeshFromCsg,
+    csgUnion,
     createEngine,
     createGround,
     createHemisphericLight,
@@ -16,6 +19,7 @@ import {
     startEngine,
     Vec3,
     subtractVec3,
+    createCsmDirectionalShadowGenerator,
 } from "@babylonjs/lite";
 
 const sunPosition: Vec3 = { x: 2, y: 3, z: 1 };
@@ -76,13 +80,30 @@ async function main(): Promise<void> {
 
     addToScene(scene, planet);
 
+    // SELF-SHADOW TEST: one merged mesh (slab + pillar, like the ship's CSG body) that is both
+    // caster and receiver in the 'sun' light group. If self shadowing works, the pillar's shadow
+    // falls on the slab's top surface (toward -x/-z, away from the sun).
+    const slab = createBox(engine, { width: 2, height: 0.3, depth: 1 });
+    const pillar = createBox(engine, { width: 0.3, height: 0.6, depth: 0.3 });
+    pillar.position.set(0.7, 0.45, 0);
+    const selfShadowMesh = createMeshFromCsg(engine, csgUnion(createCsgFromMesh(slab), createCsgFromMesh(pillar)));
+    if (!selfShadowMesh) throw new Error('csg merge failed');
+    selfShadowMesh.id = 'sun';
+    selfShadowMesh.position.set(-2.5, 0.3, -1.5);
+    const selfMat = createStandardMaterial();
+    selfMat.diffuseColor = [0.9, 0.9, 0.9];
+    selfMat.specularColor = [0.2, 0.2, 0.2];
+    selfShadowMesh.material = selfMat;
+    selfShadowMesh.receiveShadows = true;
+    addToScene(scene, selfShadowMesh);
+
     const bDir = subtractVec3(box.position, pretendSun.position);
     // spot light up and to the side, aimed at the box: the shadow falls away from the light
     const playerObjectsSpot = createSpotLight([sunPosition.x, sunPosition.y, sunPosition.z], [bDir.x, bDir.y, bDir.z], 1.2, 0, 1.0);
     playerObjectsSpot.range = 30;
     playerObjectsSpot.includedOnlyMeshIds = new Set(['sun'])
     playerObjectsSpot.shadowGenerator = createPcfSpotlightShadowGenerator(engine, playerObjectsSpot, { mapSize: 2048, near: 0.5, far: 6000 });
-    setShadowTaskCasterMeshes(playerObjectsSpot.shadowGenerator, [box, secondBox]);
+    setShadowTaskCasterMeshes(playerObjectsSpot.shadowGenerator, [box, secondBox, selfShadowMesh]);
     addToScene(scene, playerObjectsSpot);
 
     // planet direction

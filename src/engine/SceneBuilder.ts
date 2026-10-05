@@ -34,15 +34,15 @@ export default class SceneBuilder {
   /**
    * Build the complete game scene with default or custom configuration
    */
-  buildScene(config: SceneConfig = {}): void {
+  async buildScene(config: SceneConfig = {}): Promise<void> {
     const { asteroidCount = 80, spaceRadius = 150, aiShipCount = 15 } = config;
     $scene.clearColor = { r: 0.01, g: 0.04, b: 0.04, a: 1 };
     const light = createHemisphericLight([1, 1, 1], 0.001);
     addToScene($scene, light);
     this.createAsteroidField(asteroidCount, spaceRadius);
-    this.createPlayerShip();
-    this.createAIShips(aiShipCount);
-    this.createSpaceStation();
+    await this.createPlayerShip();
+    await this.createAIShips(aiShipCount);
+    await this.createSpaceStation();
   }
 
   /**
@@ -64,20 +64,21 @@ export default class SceneBuilder {
   /**
    * Create the player-controlled spaceship
    */
-  private createPlayerShip(): void {
-    const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1]);
+  private async createPlayerShip(): Promise<void> {
+    const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1], 'local');
     playerShip.position = { x: 500, y: 0, z: 0 };
 
     const humanController = new HumanController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
-    this.gameEngine.setPlayerObject(playerShip);
+    // create() must finish first: light group setup needs the meshes
+    await this.gameEngine.setPlayerObject(playerShip);
     this.gameEngine.lightSystem.RegisterGroup(playerShip, 'local');
   }
 
   /**
    * Create AI-controlled spaceships with different behaviors
    */
-  private createAIShips(count: number): void {
+  private async createAIShips(count: number): Promise<void> {
     type Behavior = 'follow' | 'idle' | 'patrol';
     const configs: { id: string; pos: Vec3; color: Vec3Tuple; behavior: Behavior }[] = [
       {
@@ -118,16 +119,16 @@ export default class SceneBuilder {
       }
 
       aiShip.possess(aiController);
-      this.gameEngine.addGameObject(aiShip);
+      await this.gameEngine.addGameObject(aiShip);
     }
   }
 
-  private createSpaceStation(): void {
+  private async createSpaceStation(): Promise<void> {
     const randomPos = this.randomSpacePosition(150);
 
     const spaceStation = new SpaceStation('/models/SpaceStation1.glb');
     spaceStation.position = randomPos;
-    this.gameEngine.addGameObject(spaceStation);
+    await this.gameEngine.addGameObject(spaceStation);
   }
 
   /**

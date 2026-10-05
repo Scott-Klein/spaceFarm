@@ -1,19 +1,20 @@
 import {
   addToScene,
-  createPcfSpotlightShadowGenerator,
+  createCsmDirectionalShadowGenerator,
+  createDirectionalLight,
   createSphere,
-  createSpotLight,
   createStandardMaterial,
   setShadowTaskCasterMeshes,
   subtractVec3,
+  type CsmDirectionalShadowGeneratorConfig,
+  type DirectionalLight,
   type Mesh,
-  type SpotLight,
 } from '@babylonjs/lite';
 import GameObject from './GameObject';
 import type RenderableObject from './game/RenderableObject';
 
 export interface LightGroup {
-  light: SpotLight;
+  light: DirectionalLight;
   members: Set<GameObject>;
   target: GameObject;
 }
@@ -33,6 +34,11 @@ export default class LightSystem {
   }
 
   public RegisterGroup(gameObject: RenderableObject, groupId: string) {
+    // lets set all meshes to ahve the right id;
+    for (const m of gameObject.getMesh()) {
+      m.id = groupId;
+    }
+
     if (this.lightGroups.has(groupId)) {
       // add this object as a member
       const lg = this.lightGroups.get(groupId);
@@ -44,8 +50,24 @@ export default class LightSystem {
         members: new Set<GameObject>([gameObject]),
         target: gameObject,
       };
-      newGroup.light.shadowGenerator = createPcfSpotlightShadowGenerator($engine, newGroup.light, { mapSize: 2048, near: 0.5, far: 6000 });
-      setShadowTaskCasterMeshes(newGroup.light.shadowGenerator, gameObject.getMesh())
+      newGroup.light.includedOnlyMeshIds = new Set([groupId]);
+
+      const confCsm: CsmDirectionalShadowGeneratorConfig = {
+        shadowMaxZ: 700,
+        stabilizeCascades: true,
+        numCascades: 3,
+        lambda: 0.9,
+        worldSpaceBias: 0.35,
+        frustumEdgeFalloff: 0.15,
+        darkness: 0,
+      };
+      newGroup.light.shadowGenerator = createCsmDirectionalShadowGenerator(
+        $engine,
+        newGroup.light,
+        confCsm,
+      );
+
+      setShadowTaskCasterMeshes(newGroup.light.shadowGenerator, gameObject.getMesh());
       addToScene($scene, newGroup.light);
       this.lightGroups.set(groupId, newGroup);
     }
@@ -57,19 +79,13 @@ export default class LightSystem {
     }
   }
 
-  private createSunLight(target: GameObject): SpotLight {
+  private createSunLight(target: GameObject): DirectionalLight {
     const dir = subtractVec3(target.position, this.sun.position);
-    const sl = createSpotLight(
-      [this.sun.position.x, this.sun.position.y, this.sun.position.z],
-      [dir.x, dir.y, dir.z],
-      1.2,
-      0,
-      1.0,
-    );
+    const sl = createDirectionalLight([dir.x, dir.y, dir.z], 1);
     return sl;
   }
 
-  private targetSun(target: GameObject, sunLight: SpotLight): void {
+  private targetSun(target: GameObject, sunLight: DirectionalLight): void {
     const dir = subtractVec3(target.position, this.sun.position);
     sunLight.direction.copyFrom(dir);
   }

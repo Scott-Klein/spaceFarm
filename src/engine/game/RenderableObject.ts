@@ -29,7 +29,49 @@ export default class RenderableObject extends GameObject {
   }
 
   async create(): Promise<void> {
-    this.mesh = this.createPlaceholderMesh();
+    let container: AssetContainer | null = null;
+    let meshes: Mesh[];
+    if (this.modelPath) {
+      container = await this.loadModelAsync();
+      if (!container) return;
+      meshes = getContainerMeshes(container);
+    } else {
+      meshes = this.createPlaceholderMesh();
+    }
+
+    if (this.disposed) return; // just in case theres a race
+
+    if (this.mesh.length) {
+      for (const m of this.mesh) removeFromScene($scene, m);
+    }
+    this.mesh = meshes;
+
+    // materials must be assigned BEFORE addToScene: the scene groups meshes by material at add time
+    this.prepareMeshes(meshes);
+
+    if (container) {
+      addToScene($scene, container);
+      // glTF puts every mesh under its own root node(s) (container.entities), which is what
+      // actually has to move. Parent those to our root, not the meshes themselves.
+      this.attachToRoot(container.entities.filter((e): e is TransformNode => 'rotationQuaternion' in e));
+    } else {
+      for (const m of meshes) addToScene($scene, m);
+      this.attachToRoot(meshes);
+    }
+
+    // sync once so the object doesn't sit at the origin for a frame
+    this.root!.position.copyFrom(this.position);
+    this.root!.rotationQuaternion.copyFrom(this.orientation);
+
+    if (container) this.onModelLoaded(container);
+  }
+
+  // hook for subclasses; runs before the meshes are added to the scene.
+  // Default: only give a material to meshes that have none, so loaded models keep their own.
+  protected prepareMeshes(meshes: Mesh[]): void {
+    for (const m of meshes) {
+      if (!m.material) m.material = createStandardMaterial();
+    }
   }
 
   updateRender(deltaTime: number): void {
@@ -60,42 +102,22 @@ export default class RenderableObject extends GameObject {
   }
 
   protected createPlaceholderMesh(): Mesh[] {
-    const body = createSphere($engine);
-    // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
-    body.material = createStandardMaterial();
-    addToScene($scene, body);
-    this.attachToRoot([body]);
-    return [body];
+    return [createSphere($engine)];
   }
 
-  // RenderableObject
-  protected async loadModelAsync(pmodelPath?: string): Promise<void> {
+  protected async loadModelAsync(pmodelPath?: string): Promise<AssetContainer | null> {
     this.logger.log('Begin load model of renderable:');
-    if (!this.modelPath && !pmodelPath) return;
     if (pmodelPath) this.modelPath = pmodelPath;
+    if (!this.modelPath) return null;
 
-    let container;
     try {
-      container = await loadGltf($engine, this.modelPath);
+      const container = await loadGltf($engine, this.modelPath);
+      this.logger.log('end load model of renderable:');
+      return container;
     } catch (e) {
       console.error('[dbg] gltf load FAILED', this.modelPath, e);
-      return;
+      return null;
     }
-
-    if (this.mesh) removeFromScene($scene, this.mesh);
-
-    if (this.disposed) { // just in case theres a race
-      return;
-    }
-    addToScene($scene, container);
-
-    const meshes = getContainerMeshes(container);
-    this.mesh = meshes;
-    // glTF puts every mesh under its own root node(s) (container.entities), which is what
-    // actually has to move. Parent those to our root, not the meshes themselves.
-    this.attachToRoot(container.entities.filter((e): e is TransformNode => 'rotationQuaternion' in e));
-    this.onModelLoaded(container);
-    this.logger.log('end load model of renderable:');
   }
 
   protected onModelLoaded(_result: AssetContainer): void {}

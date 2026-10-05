@@ -37,7 +37,7 @@ onMounted(async () => {
   try {
   babylonSetupResult = await setupBabylonScene({
     canvas: canvasRef.value,
-    onSceneReady: () => {
+    onSceneReady: async () => {
       gameEngine = new GameEngine();
 
       gameEngine.setStateUpdateCallback((state) => {
@@ -52,7 +52,7 @@ onMounted(async () => {
       });
 
       const sceneBuilder = new SceneBuilder(gameEngine);
-      sceneBuilder.buildScene();
+      await sceneBuilder.buildScene();
     },
   });
   // unmounted (or hot-reloaded) while we were still setting up: tear this engine down
