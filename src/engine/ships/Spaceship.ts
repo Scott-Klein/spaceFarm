@@ -2,7 +2,6 @@ import FlightSystem from '../FlightSystem';
 import type { ControlInput } from '../Controller';
 import RenderableObject from '../game/RenderableObject';
 import {
-  addToScene,
   addVec3InPlace,
   createBox,
   createCsgFromMesh,

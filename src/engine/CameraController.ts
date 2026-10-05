@@ -17,7 +17,7 @@ export default class CameraController {
   constructor() {
     this.logger = useLogStore();
     this.camera = createArcRotateCamera(-Math.PI / 2, Math.PI / 2, 5, { x: 0, y: 0, z: 0 });
-
+    this.camera.farPlane = 5000
     this.logger.log('The camera controller is setup.');
     this.setArcRotateMode();
   }
