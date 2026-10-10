@@ -28,6 +28,8 @@ export const useGameStore = defineStore('game', () => {
     yaw: 0,
   });
 
+  const frameRate = ref<string>();
+
   // Camera state
   const cameraMode = ref<CameraMode>('free');
 
@@ -50,7 +52,7 @@ export const useGameStore = defineStore('game', () => {
     player.value.yaw = yaw;
   }
 
-  // Batch update for efficiency - call this once per frame
+  // Batch update for efficiency - call this once per framezzzzzzzzz
   function updatePlayerState(state: Partial<PlayerState>) {
     if (state.speed !== undefined) player.value.speed = state.speed;
     if (state.maxSpeed !== undefined) player.value.maxSpeed = state.maxSpeed;
@@ -72,6 +74,7 @@ export const useGameStore = defineStore('game', () => {
   return {
     player,
     cameraMode,
+    frameRate,
     updatePlayerSpeed,
     updatePlayerMaxSpeed,
     updatePlayerThrottle,

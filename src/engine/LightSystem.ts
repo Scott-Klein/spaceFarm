@@ -82,7 +82,7 @@ export default class LightSystem {
 
   private createSunLight(target: GameObject): DirectionalLight {
     const dir = subtractVec3(target.position, this.sun.position);
-    const sl = createDirectionalLight([dir.x, dir.y, dir.z], 1);
+    const sl = createDirectionalLight([dir.x, dir.y, dir.z], 1.5);
     return sl;
   }
 

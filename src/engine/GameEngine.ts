@@ -2,11 +2,11 @@ import GameObject from './GameObject';
 import CameraController from './CameraController';
 import InputManager from './InputManager';
 import Spaceship from './ships/Spaceship';
-//import type { useGameStore } from '@/stores/gameState';
+import { useGameStore } from '@/stores/gameState';
 import { onBeforeRender  } from '@babylonjs/lite';
 import LightSystem from './LightSystem';
 
-//type GameStore = ReturnType<typeof useGameStore>;
+type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
 export type StateUpdateCallback = (state: {
@@ -27,6 +27,9 @@ export default class GameEngine {
   private gameObjects: GameObject[] = [];
   private player: GameObject | null = null;
   private selectedObject: GameObject | null = null;
+  private gameUi: GameStore = useGameStore();
+  private frameTimeAccumulator: number = 0;
+  private frameCountAccumulator: number = 0;
 
   /**
    * Accumulates time from rendering that the physics engine 'pays off'
@@ -57,12 +60,21 @@ export default class GameEngine {
    */
   private update(deltaTime: number): void {
     this.accumulator += deltaTime;
+    this.frameTimeAccumulator += deltaTime;
+    this.frameCountAccumulator++;
     while (this.accumulator >= this.DELTA_RATE) {
       this.updatePhysics();
       this.accumulator -= this.DELTA_RATE;
     }
 
     this.updateRender(deltaTime);
+
+    if (this.frameTimeAccumulator > 1000) {
+      const gputime = $engine.gpuFrameTimeMs;
+      this.gameUi.frameRate = `${this.frameCountAccumulator} || gpu ${gputime}`.toString();
+      this.frameCountAccumulator = 0;
+      this.frameTimeAccumulator = 0;
+    }
   }
 
   private updatePhysics(): void {

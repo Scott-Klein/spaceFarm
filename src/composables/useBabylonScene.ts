@@ -5,7 +5,8 @@ import {
   startEngine,
   disposeEngine,
   disposeScene,
-  registerSceneWithShadowSupport
+  registerSceneWithShadowSupport,
+  setGpuTimingEnabled
 } from '@babylonjs/lite';
 export interface BabylonSceneOptions {
   canvas: HTMLCanvasElement;
@@ -25,6 +26,9 @@ async function setupBabylonScene(options: BabylonSceneOptions) {
   // Create scene
   const scene = createSceneContext(engine);
   initialise(engine, scene, canvas)
+
+  // turing on some debugging, can disable this later
+  setGpuTimingEnabled($engine, true)
   // Call the setup callback
   // must finish before registerSceneWithShadowSupport: shadow lights/casters have to exist by then
   if (onSceneReady) {

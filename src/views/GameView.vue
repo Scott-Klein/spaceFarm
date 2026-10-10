@@ -8,7 +8,7 @@
     <div class="flex-1">
       <LogWindow />
     </div>
-
+    <FpsCounter />
     <ShipStatus />
     <ShipUi />
     <CameraToggle />
@@ -22,6 +22,7 @@ import { GameEngine, SceneBuilder } from '@/engine';
 import { useGameStore } from '@/stores/gameState';
 import LogWindow from '@/components/LogWindow.vue';
 import ShipUi from '@/components/ui/ship/ShipUi.vue';
+import FpsCounter from '@/components/ui/ship/FpsCounter.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';
 import ShipStatus from '@/components/ui/ship/ShipStatus.vue';
 

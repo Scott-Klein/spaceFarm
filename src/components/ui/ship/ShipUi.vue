@@ -1,6 +1,7 @@
 <template>
   <div class="fixed bottom-8 left-1/2 -translate-x-1/2 select-none text-white leading-none">
     <div class="relative flex gap-12 bg-slate-800 p-2">
+
       <div class="flex flex-col gap-1 text-xs">
         <!--The speed / max speed-->
         <span class="text-xs">Speed</span>
