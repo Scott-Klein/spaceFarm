@@ -36,7 +36,7 @@ export default class SceneBuilder {
    * Build the complete game scene with default or custom configuration
    */
   async buildScene(config: SceneConfig = {}): Promise<void> {
-    const { asteroidCount = 3280, spaceRadius = 11420, aiShipCount = 15 } = config;
+    const { asteroidCount = 280, spaceRadius = 11420, aiShipCount = 15 } = config;
     $scene.clearColor = { r: 0.01, g: 0.04, b: 0.04, a: 1 };
     const light = createHemisphericLight([1, 1, 1], 0.001);
     addToScene($scene, light);
@@ -77,7 +77,7 @@ export default class SceneBuilder {
 
   private async createPlanet(): Promise<void> {
     const planetObj = new Planet();
-    planetObj.position = { x: 0, y: 0, z: -400 };
+    planetObj.position = { x: 0, y: 0, z: -25400 };
     await planetObj.create();
     this.gameEngine.lightSystem.RegisterGroup(planetObj, 'planet');
   }

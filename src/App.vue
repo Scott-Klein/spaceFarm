@@ -17,6 +17,11 @@ import { RouterLink, RouterView } from 'vue-router';
             :to="{ name: 'game' }"
             >Game</RouterLink
           >
+          <RouterLink
+            class="hover:underline hover:text-white/50 transition-colors"
+            :to="{ name: 'star' }"
+            >Star</RouterLink
+          >
         </nav>
       </div>
     </header>
