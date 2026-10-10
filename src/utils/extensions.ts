@@ -8,7 +8,7 @@ z = a.w*b.z + a.x*b.y - a.y*b.x + a.z*b.w
 w = a.w*b.w - a.x*b.x - a.y*b.y - a.z*b.z
 */
 
-const multiplyQuatInPlace = (target: Quat, b: Quat): Quat => {
+const multiplyQuat = (target: Quat, b: Quat): Quat => {
   const x = target.w * b.x + target.x * b.w + target.y * b.z - target.z * b.y;
   const y = target.w * b.y - target.x * b.z + target.y * b.w + target.z * b.x;
   const z = target.w * b.z + target.x * b.y - target.y * b.x + target.z * b.w;
@@ -85,7 +85,7 @@ export {
   vec3Length,
   rotateVec3ByQuat,
   invertQuat,
-  multiplyQuatInPlace,
+  multiplyQuat,
   quatFromEuler,
   normalizeQuat,
   toDegrees,

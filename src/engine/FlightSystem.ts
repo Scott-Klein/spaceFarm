@@ -1,4 +1,4 @@
-import { multiplyQuatInPlace, normalizeQuat, quatFromEuler, quatIdentity, rotateVec3ByQuat, vec3Length } from '@/utils/extensions';
+import { multiplyQuat, normalizeQuat, quatFromEuler, quatIdentity, rotateVec3ByQuat, vec3Length } from '@/utils/extensions';
 import { addVec3InPlace, scaleVec3, scaleVec3InPlace, vec3, type Quat, type Vec3 } from '@babylonjs/lite';
 
 export interface FlightInput {
@@ -88,7 +88,7 @@ export default class FlightSystem {
 
     // Update orientation based on angular velocity
     const rotationCHange = quatFromEuler(this.angularVelocity);
-    multiplyQuatInPlace(this.orientation, rotationCHange);
+    this.orientation = multiplyQuat(this.orientation, rotationCHange);
     this.orientation = normalizeQuat(this.orientation);
 
     return {

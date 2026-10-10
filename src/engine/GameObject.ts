@@ -1,7 +1,7 @@
 import { addVec3InPlace, type Quat, type Vec3 } from '@babylonjs/lite';
 import type Controller from './Controller';
 import type { ControlInput } from './Controller';
-import { multiplyQuatInPlace, normalizeQuat, quatFromEuler } from '@/utils/extensions';
+import { multiplyQuat, normalizeQuat, quatFromEuler } from '@/utils/extensions';
 
 export default abstract class GameObject {
   public position: Vec3;
@@ -36,7 +36,7 @@ export default abstract class GameObject {
   protected handleControlInput(input: ControlInput): void {
     if (input.movement) addVec3InPlace(this.position, input.movement); //TODO: input.movement isn't a vec3 find out what it is. this method might not be right
     if (input.rotation) {
-      this.orientation = normalizeQuat(multiplyQuatInPlace(this.orientation, quatFromEuler(input.rotation)))
+      this.orientation = normalizeQuat(multiplyQuat(this.orientation, quatFromEuler(input.rotation)))
     }
   }
 
