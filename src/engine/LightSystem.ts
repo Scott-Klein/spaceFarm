@@ -53,9 +53,10 @@ export default class LightSystem {
       newGroup.light.includedOnlyMeshIds = new Set([groupId]);
 
       const confCsm: CsmDirectionalShadowGeneratorConfig = {
-        shadowMaxZ: 700,
+        shadowMaxZ: 100,
+        mapSize: 4096,
         stabilizeCascades: true,
-        numCascades: 3,
+        numCascades: 4,
         lambda: 0.9,
         worldSpaceBias: 0.35,
         frustumEdgeFalloff: 0.15,
