@@ -25,7 +25,7 @@ export default class LightSystem {
 
   constructor() {
     this.lightGroups = new Map<string, LightGroup>();
-    const sun = createSphere($engine, { diameter: 50 });
+    const sun = createSphere($engine, { diameter: 5000 });
     const sunMat = createStandardMaterial();
     sunMat.emissiveColor = [1.0, 0.85, 0.5];
     sun.material = sunMat;

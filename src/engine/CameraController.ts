@@ -5,6 +5,7 @@ import {
   type Vec3,
   attachControl,
   createArcRotateCamera,
+  setCameraLimits,
 } from '@babylonjs/lite';
 
 export default class CameraController {
@@ -17,8 +18,9 @@ export default class CameraController {
   constructor() {
     this.logger = useLogStore();
     this.camera = createArcRotateCamera(-Math.PI / 2, Math.PI / 2, 5, { x: 0, y: 0, z: 0 });
-    this.camera.farPlane = 5000
+    this.camera.farPlane = 75000
     this.logger.log('The camera controller is setup.');
+    setCameraLimits(this.camera, { lowerRadiusLimit: 10, upperRadiusLimit: 100 })
     this.setArcRotateMode();
   }
 

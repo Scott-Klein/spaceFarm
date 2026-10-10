@@ -36,7 +36,7 @@ export default class SceneBuilder {
    * Build the complete game scene with default or custom configuration
    */
   async buildScene(config: SceneConfig = {}): Promise<void> {
-    const { asteroidCount = 80, spaceRadius = 150, aiShipCount = 15 } = config;
+    const { asteroidCount = 3280, spaceRadius = 11420, aiShipCount = 15 } = config;
     $scene.clearColor = { r: 0.01, g: 0.04, b: 0.04, a: 1 };
     const light = createHemisphericLight([1, 1, 1], 0.001);
     addToScene($scene, light);
@@ -54,11 +54,9 @@ export default class SceneBuilder {
     for (let i = 0; i < count; i++) {
       const position = this.randomSpacePosition(radius, 20); // Avoid origin within 20 units
       const size = 3 + Math.random() * 8; // 3-11 units
-      const color: [number, number, number] = [
-        0.2 + Math.random() * 0.6,
-        0.2 + Math.random() * 0.6,
-        0.3 + Math.random() * 0.5,
-      ];
+      const v = 0.6 + Math.random() * 2; // brightness
+      const t = (Math.random() - 0.5) * 0.15; // + is orange, - is lime
+      const color = [v + t, v - t, 0.08 + Math.random() * 0.15] as Vec3Tuple;
       this.createReferenceObject(position, size, color);
     }
   }
@@ -68,7 +66,7 @@ export default class SceneBuilder {
    */
   private async createPlayerShip(): Promise<void> {
     const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1], 'local');
-    playerShip.position = { x: 500, y: 0, z: 0 };
+    playerShip.position = { x: 5500, y: 0, z: 0 };
 
     const humanController = new HumanController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
@@ -155,7 +153,7 @@ export default class SceneBuilder {
     // material must be assigned BEFORE addToScene: the scene groups meshes by material at add time
     const material = createStandardMaterial();
     material.diffuseColor = color;
-    material.emissiveColor = color.map((c) => c * 0.3) as [number, number, number];
+    material.emissiveColor = color.map((c) => c * 1) as [number, number, number];
     sphere.material = material;
     addToScene($scene, sphere);
     if (debugFlash) {
