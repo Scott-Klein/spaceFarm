@@ -2,6 +2,7 @@ import GameObject from './GameObject';
 import useLogStore from '@/stores/logs';
 import {
   type ArcRotateCamera,
+  type Mesh,
   type Vec3,
   attachControl,
   createArcRotateCamera,
@@ -12,6 +13,7 @@ export default class CameraController {
   private camera: ArcRotateCamera;
   private cameraMode: 'arcRotate' | 'follow' | 'unset' = 'unset';
   private target: GameObject | null = null;
+  private skybox: Mesh | null = null;
   logger: ReturnType<typeof useLogStore>;
   private localOffset: Vec3 = { x: 0, y: 5, z: 25 }; // new Vector3(0, 5, 25); // behind + above, local space
 
@@ -41,6 +43,10 @@ export default class CameraController {
     this.camera.target.x = x;
     this.camera.target.y = y;
     this.camera.target.z = z;
+
+    if (this.skybox) {
+      this.skybox.position.copyFrom(this.target.position);
+    }
   }
 
   getCamera(): ArcRotateCamera {
@@ -49,6 +55,10 @@ export default class CameraController {
 
   setDistance(distance: number): void {
     this.camera.radius = distance;
+  }
+
+  setSkyBox(sky: Mesh): void {
+    this.skybox = sky;
   }
 
   setAngle(alpha: number, beta: number): void {

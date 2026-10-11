@@ -9,11 +9,13 @@ import {
   createHemisphericLight,
   createSphere,
   createStandardMaterial,
+  createTexture2DFromExternalImage,
   type Vec3,
   type Vec3Tuple,
 } from '@babylonjs/lite';
 import MathBro from '@/utils/MathBro';
 import Planet from './game/Planet';
+import { makeStarMapBitmap } from './makeStarMapBitmap';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -45,6 +47,35 @@ export default class SceneBuilder {
     await this.createAIShips(aiShipCount);
     await this.createSpaceStation();
     this.createPlanet();
+    // not awaited on purpose: the sky arrives whenever the worker is done
+    this.createSkyBox().catch((err) => this.log.log(`skybox failed: ${err}`));
+  }
+
+  private async createSkyBox(): Promise<void> {
+    const skySphere = createSphere($engine, { diameter: 150000 });
+
+    // generated off the main thread; the sky pops in once the worker finishes
+    const starMap = await makeStarMapBitmap(2);
+    const skyTexture = await createTexture2DFromExternalImage($engine, starMap, {
+      mipMaps: false,
+      addressModeU: 'repeat',
+      addressModeV: 'clamp-to-edge',
+      invertY: false,
+    });
+    starMap.close();
+
+    const skySphereMat = createStandardMaterial();
+
+    skySphereMat.diffuseTexture = skyTexture;
+    skySphereMat.disableLighting = true;
+    skySphereMat.emissiveColor = [1, 1, 1];
+    skySphereMat.diffuseColor = [1, 1, 1];
+    skySphereMat.backFaceCulling = false;
+    skySphere.material = skySphereMat;
+
+    addToScene($scene, skySphere);
+
+    this.gameEngine.getCameraController().setSkyBox(skySphere);
   }
 
   /**
