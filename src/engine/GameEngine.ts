@@ -2,8 +2,8 @@ import GameObject from './GameObject';
 import CameraController from './CameraController';
 import InputManager from './InputManager';
 import Spaceship from './ships/Spaceship';
-import { useGameStore } from '@/stores/gameState';
-import { onBeforeRender  } from '@babylonjs/lite';
+import useGameStore from '@/stores/gameState';
+import { onBeforeRender } from '@babylonjs/lite';
 import LightSystem from './LightSystem';
 
 type GameStore = ReturnType<typeof useGameStore>;
@@ -75,6 +75,12 @@ export default class GameEngine {
       this.frameCountAccumulator = 0;
       this.frameTimeAccumulator = 0;
     }
+    this.gameUi.markers = [];
+    this.gameObjects.forEach(x => {
+      const w2s = this.cameraController.world2Screen(x.position);
+      if (w2s.behindCamera) return;
+      this.gameUi.markers.push({x: w2s.x, y: w2s.y, label: x.getLabel()})
+    })
   }
 
   private updatePhysics(): void {

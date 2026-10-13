@@ -1,6 +1,6 @@
-import { makeStarMap } from './starSkyBox';
+import { makeStarMap, type StarMapOverrides } from './starMap';
 
-self.onmessage = (e: MessageEvent<{ scale: number; seed?: number }>) => {
-  const bitmap = makeStarMap(e.data.scale, e.data.seed).transferToImageBitmap();
+self.onmessage = (e: MessageEvent<StarMapOverrides>) => {
+  const bitmap = makeStarMap(e.data).transferToImageBitmap();
   self.postMessage(bitmap, { transfer: [bitmap] });
 };

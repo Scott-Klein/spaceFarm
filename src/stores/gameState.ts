@@ -11,13 +11,17 @@ export interface PlayerState {
 }
 
 export type CameraMode = 'free' | 'follow';
-
+export interface Marker {
+  x: number;
+  y: number;
+  label: string;
+}
 /**
  * Game state store - Bridge between game engine and UI
  * The game engine writes to this store, UI components read from it
  * UI components can send commands back through action methods
  */
-export const useGameStore = defineStore('game', () => {
+const useGameStore = defineStore('game', () => {
   // Player ship state
   const player = ref<PlayerState>({
     speed: 0,
@@ -27,6 +31,8 @@ export const useGameStore = defineStore('game', () => {
     roll: 0,
     yaw: 0,
   });
+
+  const markers = ref<Marker[]>([]);
 
   const frameRate = ref<string>();
 
@@ -75,6 +81,7 @@ export const useGameStore = defineStore('game', () => {
     player,
     cameraMode,
     frameRate,
+    markers,
     updatePlayerSpeed,
     updatePlayerMaxSpeed,
     updatePlayerThrottle,
@@ -84,3 +91,5 @@ export const useGameStore = defineStore('game', () => {
     toggleCameraMode,
   };
 });
+
+export default useGameStore;

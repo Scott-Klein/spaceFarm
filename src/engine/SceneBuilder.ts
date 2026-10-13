@@ -52,10 +52,10 @@ export default class SceneBuilder {
   }
 
   private async createSkyBox(): Promise<void> {
-    const skySphere = createSphere($engine, { diameter: 150000 });
+    const skySphere = createSphere($engine, { diameter: 950000 });
 
     // generated off the main thread; the sky pops in once the worker finishes
-    const starMap = await makeStarMapBitmap(2);
+    const starMap = await makeStarMapBitmap();
     const skyTexture = await createTexture2DFromExternalImage($engine, starMap, {
       mipMaps: false,
       addressModeU: 'repeat',
@@ -97,7 +97,7 @@ export default class SceneBuilder {
    */
   private async createPlayerShip(): Promise<void> {
     const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1], 'local');
-    playerShip.position = { x: 5500, y: 0, z: 0 };
+    playerShip.position = { x: 25500, y: 0, z: 0 };
 
     const humanController = new HumanController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
@@ -108,8 +108,8 @@ export default class SceneBuilder {
 
   private async createPlanet(): Promise<void> {
     const planetObj = new Planet();
-    planetObj.position = { x: 0, y: 0, z: -25400 };
-    await planetObj.create();
+    planetObj.position = { x: 0, y: 0, z: -95400 };
+    await this.gameEngine.addGameObject(planetObj)
     this.gameEngine.lightSystem.RegisterGroup(planetObj, 'planet');
   }
 

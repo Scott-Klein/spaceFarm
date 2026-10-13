@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { useGameStore } from '@/stores/gameState';
+import useGameStore  from '@/stores/gameState';
 import { PhEye, PhLock } from '@phosphor-icons/vue';
 
 const gameStore = useGameStore();

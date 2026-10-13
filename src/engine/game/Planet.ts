@@ -7,7 +7,7 @@ export default class Planet extends RenderableObject {
   }
 
   protected createMeshes(): Mesh[] {
-    const planetSphere = createSphere($engine, { diameter: 3500 });
+    const planetSphere = createSphere($engine, { diameter: 9500 });
     return [planetSphere];
   }
 
@@ -19,5 +19,9 @@ export default class Planet extends RenderableObject {
         m.material = mat;
       }
     }
+  }
+
+  getLabel() {
+    return 'Planet'
   }
 }

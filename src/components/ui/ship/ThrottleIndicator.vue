@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useGameStore } from '@/stores/gameState';
+import useGameStore from '@/stores/gameState';
 
 const gameStore = useGameStore();
 

@@ -1,13 +1,12 @@
 <template>
-  <div class="flex flex-1 min-h-0 w-full select-none">
+  <div class="relative flex flex-1 min-h-0 w-full select-none text-white">
     <canvas
       ref="canvasRef"
       touch-action="none"
-      class="h-full flex-5 min-h-0 min-w-0 outline-none"
+      class="h-full flex-5 min-h-0 min-w-0 outline-none absolute inset-0 w-full h-full outline-none"
     ></canvas>
-    <div class="flex-1">
-      <LogWindow />
-    </div>
+    <OverlayUI />
+    <OverviewWIndow />
     <FpsCounter />
     <ShipStatus />
     <ShipUi />
@@ -19,13 +18,14 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import setupBabylonScene from '@/composables/useBabylonScene';
 import { GameEngine, SceneBuilder } from '@/engine';
-import { useGameStore } from '@/stores/gameState';
-import LogWindow from '@/components/LogWindow.vue';
+import useGameStore from '@/stores/gameState';
+//import LogWindow from '@/components/LogWindow.vue';
 import ShipUi from '@/components/ui/ship/ShipUi.vue';
 import FpsCounter from '@/components/ui/ship/FpsCounter.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';
 import ShipStatus from '@/components/ui/ship/ShipStatus.vue';
-
+import OverlayUI from '@/components/OverlayUI.vue';
+import OverviewWIndow from '@/components/ui/OverviewWIndow.vue';
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const gameStore = useGameStore();
 let babylonSetupResult: Awaited<ReturnType<typeof setupBabylonScene>>;

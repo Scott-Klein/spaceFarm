@@ -9,6 +9,7 @@ export default abstract class GameObject {
   protected disposed = false;
   private controller: Controller | null = null;
   private lastInput: ControlInput | null = null;
+  protected label = 'ERROR_EMPTY_DISPLAY_LABEL';
 
   constructor() {
     this.position = { x: 0, y: 0, z: 0};
@@ -17,6 +18,9 @@ export default abstract class GameObject {
 
   abstract create(): Promise<void>;
 
+  getLabel(): string {
+    return this.label;
+  }
   updateRender(deltaTime: number): void {
     if (this.controller) {
       this.lastInput = this.controller.update(deltaTime);
