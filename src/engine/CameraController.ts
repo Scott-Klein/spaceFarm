@@ -66,7 +66,7 @@ export default class CameraController {
       cssHeight: $canvas.clientHeight
     };
     const w2s = projectWorldToScreenToRef(pos, view, viewProject, opts, this.w2sResult);
-    return { x: w2s.cssX, y: w2s.cssY, behindCamera: w2s.behindCamera }
+    return { x: w2s.cssX, y: w2s.cssY, behindCamera: w2s.offscreen }
   }
 
   getView(): Mat4 {
