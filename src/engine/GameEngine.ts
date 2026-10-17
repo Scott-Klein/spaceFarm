@@ -1,11 +1,11 @@
 import GameObject from './GameObject';
 import CameraController from './CameraController';
 import InputManager from './InputManager';
-import Spaceship from './ships/Spaceship';
 import useGameStore from '@/stores/gameState';
-import { onBeforeRender } from '@babylonjs/lite';
+import { onBeforeRender, vec3 } from '@babylonjs/lite';
 import LightSystem from './LightSystem';
-
+import { distance } from '@/utils/extensions';
+import type Spaceship from './ships/Spaceship';
 type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
@@ -25,7 +25,7 @@ export default class GameEngine {
   private cameraController: CameraController;
   private inputManager: InputManager;
   private gameObjects: GameObject[] = [];
-  private player: GameObject | null = null;
+  private player: Spaceship | null = null;
   private selectedObject: GameObject | null = null;
   private gameUi: GameStore = useGameStore();
   private frameTimeAccumulator: number = 0;
@@ -44,9 +44,8 @@ export default class GameEngine {
     this.lightSystem = new LightSystem();
     this.setupGameLoop();
 
-    this.DELTA_RATE = (1000) / this.TICK_RATE;
+    this.DELTA_RATE = 1000 / this.TICK_RATE;
   }
-
 
   private setupGameLoop(): void {
     onBeforeRender($scene, (delta: number) => {
@@ -75,30 +74,32 @@ export default class GameEngine {
       this.frameCountAccumulator = 0;
       this.frameTimeAccumulator = 0;
     }
+
+    // Push state updates to store if callback is registered (Game → UI)
+    if (this.stateUpdateCallback && this.player) {
+      const angles = this.player.getOrientationAngles();
+      this.stateUpdateCallback({
+        speed: this.player.getSpeed(),
+        throttle: this.player.getThrustPercent(),
+        pitch: angles.pitch,
+        roll: angles.roll,
+        yaw: angles.yaw,
+      });
+    }
+
     this.gameUi.markers = [];
-    this.gameObjects.forEach(x => {
+    this.gameObjects.forEach((x) => {
       const w2s = this.cameraController.world2Screen(x.position);
       if (w2s.behindCamera) return;
-      this.gameUi.markers.push({x: w2s.x, y: w2s.y, label: x.getLabel()})
-    })
+      const dist = distance(x.position, this.player?.position || vec3(0, 0, 0));
+      this.gameUi.markers.push({ x: w2s.x, y: w2s.y, label: x.getLabel(), distance: dist });
+    });
   }
 
   private updatePhysics(): void {
     // Update all game objects
     for (const gameObject of this.gameObjects.values()) {
       gameObject.updatePhysics();
-    }
-
-    // Push state updates to store if callback is registered (Game → UI)
-    if (this.stateUpdateCallback && this.selectedObject instanceof Spaceship) {
-      const angles = this.selectedObject.getOrientationAngles();
-      this.stateUpdateCallback({
-        speed: this.selectedObject.getSpeed(),
-        throttle: this.selectedObject.getThrustPercent(),
-        pitch: angles.pitch,
-        roll: angles.roll,
-        yaw: angles.yaw,
-      });
     }
   }
 
@@ -129,10 +130,11 @@ export default class GameEngine {
     this.gameObjects.push(gameObject);
   }
 
-  async setPlayerObject(player: GameObject): Promise<void> {
+  async setPlayerObject(player: Spaceship): Promise<void> {
     await player.create();
     this.gameObjects.push(player);
     this.player = player;
+    this.player.isPlayer = true;
     this.cameraController.setTarget(player);
   }
 
@@ -143,7 +145,6 @@ export default class GameEngine {
       throw Error('Scene wasnt set up correctly, cant find a player?');
     }
   }
-
 
   getAllGameObjects(): GameObject[] {
     return this.gameObjects;

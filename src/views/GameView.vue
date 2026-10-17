@@ -11,6 +11,7 @@
     <ShipStatus />
     <ShipUi />
     <CameraToggle />
+    <SpeedoMeter />
   </div>
 </template>
 
@@ -26,6 +27,7 @@ import CameraToggle from '@/components/ui/CameraToggle.vue';
 import ShipStatus from '@/components/ui/ship/ShipStatus.vue';
 import OverlayUI from '@/components/OverlayUI.vue';
 import OverviewWIndow from '@/components/ui/OverviewWIndow.vue';
+import SpeedoMeter from '@/components/ui/SpeedoMeter.vue';
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const gameStore = useGameStore();
 let babylonSetupResult: Awaited<ReturnType<typeof setupBabylonScene>>;

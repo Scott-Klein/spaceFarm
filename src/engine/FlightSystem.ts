@@ -21,7 +21,7 @@ export default class FlightSystem {
   private orientation: Quat = quatIdentity();
 
   // Flight characteristics
-  private maxThrust: number = 1;
+  private maxThrust: number = 15;
   private currentThrust: number = 0;
 
   // Inertia properties
@@ -92,7 +92,7 @@ export default class FlightSystem {
     this.orientation = normalizeQuat(this.orientation);
 
     return {
-      velocity: this.velocity, // no clone — caller reads it same tick
+      velocity: this.velocity,
       orientation: this.orientation,
     };
   }

@@ -9,10 +9,6 @@
           {{ formattedSpeed }} / {{ maxSpeed.toFixed(0) }}
         </span>
       </div>
-      <div class="flex flex-col gap-1">
-        <span class="text-xs">Throttle</span>
-        <span class="text-m">{{ gameStore.player.throttle }}</span>
-      </div>
     </div>
   </div>
 </template>

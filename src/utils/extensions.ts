@@ -1,4 +1,4 @@
-import { addVec3, crossVec3, scaleVec3, type Quat, type Vec3 } from '@babylonjs/lite';
+import { addVec3, crossVec3, scaleVec3, subtractVec3, type Quat, type Vec3 } from '@babylonjs/lite';
 
 /*
 multiply quat algorithm
@@ -75,6 +75,10 @@ const vec3Length = (input: Vec3): number => {
   return Math.sqrt(input.x * input.x + input.y * input.y + input.z * input.z);
 };
 
+const distance = (a: Vec3, b: Vec3): number => {
+  return vec3Length(subtractVec3(a, b));
+}
+
 
 const quatIdentity = (): Quat => {
   return { x: 0, y: 0, z: 0, w: 1}
@@ -89,4 +93,5 @@ export {
   quatFromEuler,
   normalizeQuat,
   toDegrees,
+  distance
 };

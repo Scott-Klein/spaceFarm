@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { EngineContext, SceneContext } from '@babylonjs/lite';
 import useLogStore from './stores/logs';
 

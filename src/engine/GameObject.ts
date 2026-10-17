@@ -7,6 +7,7 @@ export default abstract class GameObject {
   public position: Vec3;
   public orientation: Quat;   // was rotation: Vector3
   protected disposed = false;
+  public isPlayer = false;
   private controller: Controller | null = null;
   private lastInput: ControlInput | null = null;
   protected label = 'ERROR_EMPTY_DISPLAY_LABEL';

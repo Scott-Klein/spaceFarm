@@ -16,6 +16,7 @@ import {
 import MathBro from '@/utils/MathBro';
 import Planet from './game/Planet';
 import { makeStarMapBitmap } from './makeStarMapBitmap';
+import Asteroid from './gameObjects/resources/Asteroid';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -38,12 +39,13 @@ export default class SceneBuilder {
    * Build the complete game scene with default or custom configuration
    */
   async buildScene(config: SceneConfig = {}): Promise<void> {
-    const { asteroidCount = 280, spaceRadius = 11420, aiShipCount = 15 } = config;
+    const { asteroidCount = 15, spaceRadius = 41420, aiShipCount = 15 } = config;
     $scene.clearColor = { r: 0.01, g: 0.04, b: 0.04, a: 1 };
     const light = createHemisphericLight([1, 1, 1], 0.001);
     addToScene($scene, light);
-    this.createAsteroidField(asteroidCount, spaceRadius);
+    // player first: it creates the 'local' light group the asteroids join
     await this.createPlayerShip();
+    await this.createAsteroidField(asteroidCount, spaceRadius);
     await this.createAIShips(aiShipCount);
     await this.createSpaceStation();
     this.createPlanet();
@@ -81,14 +83,13 @@ export default class SceneBuilder {
   /**
    * Create randomly distributed asteroids throughout 3D space
    */
-  private createAsteroidField(count: number, radius: number): void {
+  private async createAsteroidField(count: number, radius: number): Promise<void> {
     for (let i = 0; i < count; i++) {
       const position = this.randomSpacePosition(radius, 20); // Avoid origin within 20 units
-      const size = 3 + Math.random() * 8; // 3-11 units
-      const v = 0.6 + Math.random() * 2; // brightness
-      const t = (Math.random() - 0.5) * 0.15; // + is orange, - is lime
-      const color = [v + t, v - t, 0.08 + Math.random() * 0.15] as Vec3Tuple;
-      this.createReferenceObject(position, size, color);
+      const asteroid = new Asteroid();
+      asteroid.position = position;
+      await this.gameEngine.addGameObject(asteroid);
+      this.gameEngine.lightSystem.RegisterGroup(asteroid, 'local');
     }
   }
 

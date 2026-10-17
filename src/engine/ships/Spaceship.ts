@@ -33,6 +33,10 @@ export default class Spaceship extends RenderableObject {
     this.flightSystem = new FlightSystem();
   }
 
+  getLabel() {
+    return 'Spaceship'
+  }
+
   async create(): Promise<void> {
     await super.create();
     this.createDefaultEngineNodes();

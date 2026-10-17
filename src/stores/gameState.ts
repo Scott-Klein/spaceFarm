@@ -15,6 +15,7 @@ export interface Marker {
   x: number;
   y: number;
   label: string;
+  distance: number;
 }
 /**
  * Game state store - Bridge between game engine and UI
