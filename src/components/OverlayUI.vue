@@ -16,7 +16,7 @@
       @pointerdown.stop
     >
       <ul class="list-disc-none cursor-pointer">
-        <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Navigate to</li>
+        <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Align to</li>
         <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Some other idea here</li>
         <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Another idea later</li>
         <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">And so on</li>

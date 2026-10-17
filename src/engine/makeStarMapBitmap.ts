@@ -8,9 +8,10 @@ import type { StarMapOverrides } from './starMap';
 export const makeStarMapBitmap = (opts: StarMapOverrides = {}): Promise<ImageBitmap> =>
   new Promise((resolve, reject) => {
     const worker = new Worker(new URL('./starMap.worker.ts', import.meta.url), { type: 'module' });
-    worker.onmessage = (e: MessageEvent<ImageBitmap>) => {
-      resolve(e.data);
-      worker.terminate();
+    // the bitmap arrives first; the worker may keep going to write its cache, then says 'done'
+    worker.onmessage = (e: MessageEvent<ImageBitmap | 'done'>) => {
+      if (e.data === 'done') worker.terminate();
+      else resolve(e.data);
     };
     worker.onerror = (e) => {
       reject(e.error ?? new Error(e.message));
