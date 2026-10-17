@@ -1,9 +1,9 @@
 <template>
   <div class="absolute inset-0 w-full h-full pointer-events-none text-white">
     <div
-      class="absolute -translate-y-1/2"
+      class="cursor-pointer absolute -translate-y-1/2 pointer-events-auto hover:outline outline-white/50"
       v-for="m in gameStore.markers"
-      :key="`${m.x}${m.y}${m.label}`"
+      :key="`${m.label}`"
       :style="{ left: `${m.x}px`, top: `${m.y}px` }"
     >
       x <span class="text-[9px] text-white/50">{{ formatDistance(m.distance) }}</span>
