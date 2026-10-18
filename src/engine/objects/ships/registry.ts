@@ -14,3 +14,16 @@ export const SHIP_SPECS = {
 } as const satisfies Record<string, ShipSpec>;
 
 export type ShipType = keyof typeof SHIP_SPECS;
+
+export interface DroneSpec {
+  model: string;
+  color: Vec3Tuple;
+  maxHealth: number;
+  cargoCapacity: number;
+}
+
+export const DRONE_SPECS = {
+  'mining': { model: '', color: [0.9, 0.7, 0.2], maxHealth: 100, cargoCapacity: 50 },
+} as const satisfies Record<string, DroneSpec>;
+
+export type DroneType = keyof typeof DRONE_SPECS;

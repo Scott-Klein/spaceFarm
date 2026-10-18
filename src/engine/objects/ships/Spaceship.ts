@@ -17,12 +17,16 @@ import {
   type Vec3Tuple,
 } from '@babylonjs/lite';
 import { toDegrees } from '@/utils/extensions';
+// type-only: a runtime import would cycle Spaceship -> DroneBay -> Drone -> Spaceship
+import type DroneBay from '@/engine/systems/DroneBay';
 
 export default class Spaceship extends RenderableObject {
   private color: Vec3Tuple;
   // must be known before create() runs; prepareMeshes stamps it on every mesh
   private lightGroupId: string;
   private flightSystem: FlightSystem;
+  // only carriers get one; attached from outside (see DroneBay) so this file needn't import Drone
+  public droneBay: DroneBay | null = null;
   protected engineNodes: TransformNode[] = [];
 
   constructor(modelPath: string, color: Vec3Tuple, lightGroupId: string = '') {

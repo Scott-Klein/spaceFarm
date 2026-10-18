@@ -9,20 +9,6 @@ import type GameObject from '@/engine/core/GameObject';
 /** A UI command after the engine has looked its target key up in the object map. */
 export type ResolvedCommand = Command & { targetObject: GameObject };
 
-/** A multi-frame thing the ship is doing: Align, Approach, Follow, Patrol... */
-export interface ShipAction {
-  readonly command: Command;
-  /**
-   * Called every frame. Returns this frame's stick input and whether it's finished.
-   * Leave a field undefined (e.g. thrust) to let the controller's own input fill it.
-   */
-  update(
-    ship: Spaceship,
-    controller: ShipController,
-    dt: number,
-  ): { flight: FlightInput; done: boolean };
-}
-
 /**
  * Shared base for anything flying a Spaceship. Owns the action slot and the frame loop;
  * subclasses only say what they want this frame via decide().
@@ -68,7 +54,10 @@ export default abstract class ShipController extends Controller<Spaceship> {
         break;
     }
 
-    if (result.done) this.commands.shift();
+    if (result.done) {
+      this.commands.shift();
+      this.onCommandDone(current);
+    }
 
     // command steers; anything it leaves undefined falls back to the subclass's input
     return { flight: { ...own, ...stripUndefined(result.flight) } };
@@ -96,9 +85,12 @@ export default abstract class ShipController extends Controller<Spaceship> {
   /** The subclass's own input this frame. Human = keyboard, AI = usually nothing. */
   protected abstract decide(dt: number): FlightInput | null;
 
-  /** Called when an action finishes, so e.g. AI can pick the next one. */
+  /**
+   * Called after a command finishes and leaves the queue, so e.g. AI can push the next one.
+   * Not called for commands removed by clearCommands().
+   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected onActionDone(action: ShipAction): void {}
+  protected onCommandDone(command: ResolvedCommand): void {}
 
   // --- steering helpers actions lean on ---
 
