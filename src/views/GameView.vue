@@ -12,6 +12,7 @@
     <ShipUi />
     <CameraToggle />
     <SpeedoMeter />
+    <DroneWindow />
   </div>
 </template>
 
@@ -20,7 +21,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import setupBabylonScene from '@/composables/useBabylonScene';
 import { GameEngine, SceneBuilder } from '@/engine';
 import useGameStore from '@/stores/gameState';
-//import LogWindow from '@/components/ui/LogWindow.vue';
+import DroneWindow from '@/components/ui/DroneWindow.vue';
 import ShipUi from '@/components/ui/ship/ShipUi.vue';
 import FpsCounter from '@/components/ui/FpsCounter.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';

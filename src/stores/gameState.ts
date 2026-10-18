@@ -28,15 +28,15 @@ const useGameStore = defineStore('game', () => {
   const cameraMode = ref<CameraMode>('free');
 
   // Update methods called by game engine
-  function updatePlayerSpeed(speed: number) {
+  const updatePlayerSpeed = (speed: number) => {
     player.value.speed = speed;
   }
 
-  function updatePlayerMaxSpeed(maxSpeed: number) {
+  const updatePlayerMaxSpeed = (maxSpeed: number) => {
     player.value.maxSpeed = maxSpeed;
   }
 
-  function updatePlayerThrottle(throttle: number) {
+  const updatePlayerThrottle = (throttle: number) => {
     player.value.throttle = throttle;
   }
 
@@ -51,14 +51,14 @@ const useGameStore = defineStore('game', () => {
     return commands;
   }
 
-  function updatePlayerOrientation(pitch: number, roll: number, yaw: number) {
+  const updatePlayerOrientation = (pitch: number, roll: number, yaw: number) => {
     player.value.pitch = pitch;
     player.value.roll = roll;
     player.value.yaw = yaw;
   }
 
   // Batch update for efficiency - call this once per framezzzzzzzzz
-  function updatePlayerState(state: Partial<PlayerState>) {
+  const updatePlayerState = (state: Partial<PlayerState>) => {
     if (state.speed !== undefined) player.value.speed = state.speed;
     if (state.maxSpeed !== undefined) player.value.maxSpeed = state.maxSpeed;
     if (state.throttle !== undefined) player.value.throttle = state.throttle;
@@ -68,11 +68,11 @@ const useGameStore = defineStore('game', () => {
   }
 
   // Camera control actions (called by UI)
-  function setCameraMode(mode: CameraMode) {
+  const setCameraMode = (mode: CameraMode) => {
     cameraMode.value = mode;
   }
 
-  function toggleCameraMode() {
+  const toggleCameraMode = () => {
     cameraMode.value = cameraMode.value === 'free' ? 'follow' : 'free';
   }
 
