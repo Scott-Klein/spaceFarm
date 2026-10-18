@@ -6,6 +6,7 @@ import { onBeforeRender, vec3 } from '@babylonjs/lite';
 import LightSystem from './LightSystem';
 import { distance } from '@/utils/extensions';
 import Spaceship from './ships/Spaceship';
+import ShipController from './controllers/ShipController';
 type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
@@ -113,16 +114,17 @@ export default class GameEngine {
   private updateRender(deltaTime: number): void {
     const commands = this.gameUi.drainCommandQueue();
 
-    commands.forEach(x => {
-      if (x.target && this.gameObjects.has(x.target)) {
-        x.targetObject = this.gameObjects.get(x.target);
-      }
-    })
+    // copy into plain objects: the store's are reactive proxies, and a GameObject assigned
+    // onto one comes back out proxied. Commands whose target is gone are dropped.
+    const resolved = commands.flatMap((c) => {
+      const targetObject = c.target ? this.gameObjects.get(c.target) : undefined;
+      return targetObject ? [{ ...c, targetObject }] : [];
+    });
 
     const playerController = this.player?.getController();
-    if (playerController) {
+    if (playerController instanceof ShipController) {
       // have the controller swallow the commands.
-      playerController.pushCommands(commands);
+      playerController.pushCommands(resolved);
     }
 
     // Update all game objects

@@ -1,6 +1,5 @@
 import GameEngine from './GameEngine';
 import Spaceship from './ships/Spaceship';
-import HumanController from './controllers/HumanController';
 import AIController from './controllers/AIController';
 import useLogStore from '@/stores/logs';
 import SpaceStation from './ships/stations/SpaceStation';
@@ -17,6 +16,7 @@ import MathBro from '@/utils/MathBro';
 import Planet from './game/Planet';
 import { makeStarMapBitmap } from './makeStarMapBitmap';
 import Asteroid from './gameObjects/resources/Asteroid';
+import HumanShipController from './controllers/HumanShipController';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -100,7 +100,7 @@ export default class SceneBuilder {
     const playerShip = new Spaceship('/models/MilCap2.glb', [0.2, 0.6, 1], 'local');
     playerShip.position = { x: 25500, y: 0, z: 0 };
 
-    const humanController = new HumanController(this.gameEngine.getInputManager());
+    const humanController = new HumanShipController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
     // create() must finish first: light group setup needs the meshes
     await this.gameEngine.addGameObject(playerShip, true);

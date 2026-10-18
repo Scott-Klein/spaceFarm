@@ -54,6 +54,7 @@ const align = () => {
   if(menuMarker.value) {
     gameStore.pushCommand(menuMarker.value.key, 'Align')
   }
+  menuOpen.value = false;
 }
 
 const onKeydown = (event: KeyboardEvent) => {

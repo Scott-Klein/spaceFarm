@@ -4,6 +4,10 @@ import type Spaceship from '@/engine/ships/Spaceship';
 import { normalizeVec3, subtractVec3, type Vec3 } from '@babylonjs/lite';
 import { invertQuat, rotateVec3ByQuat } from '@/utils/extensions';
 import type { Command } from '@/types/game';
+import type GameObject from '@/engine/GameObject';
+
+/** A UI command after the engine has looked its target key up in the object map. */
+export type ResolvedCommand = Command & { targetObject: GameObject };
 
 /** A multi-frame thing the ship is doing: Align, Approach, Follow, Patrol... */
 export interface ShipAction {
@@ -24,19 +28,19 @@ export interface ShipAction {
  * subclasses only say what they want this frame via decide().
  */
 export default abstract class ShipController extends Controller<Spaceship> {
-  private commands: Command[] = [];
+  private commands: ResolvedCommand[] = [];
 
   // --- action slot: shared by human + AI ---
 
-  pushCommands(commands: Command[]) {
-    this.commands = commands; // at the moment overwrites commands.
+  pushCommands(commands: ResolvedCommand[]) {
+    this.commands = this.commands.concat(commands); // at the moment overwrites commands.
   }
 
   clearCommands(): void {
     this.commands = [];
   }
 
-  getAction(): Command[] {
+  getAction(): ResolvedCommand[] {
     return this.commands;
   }
 
@@ -71,9 +75,8 @@ export default abstract class ShipController extends Controller<Spaceship> {
   }
 
   /** Turn the nose onto the target. Leaves thrust and roll to the subclass. */
-  protected align(command: Command): CommandResult {
+  protected align(command: ResolvedCommand): CommandResult {
     const target = command.targetObject;
-    if (!target) return { flight: {}, done: true };
 
     const local = this.directionInShipSpace(target.position);
     const { pitch, yaw } = this.steerToward(local);
@@ -125,7 +128,7 @@ type CommandResult = { flight: FlightInput; done: boolean };
 
 // align tuning: damping is in stick units per (radian per tick) of spin
 const ALIGN_DAMPING = 30;
-const ALIGN_TOLERANCE = 1 * (Math.PI / 180);
+const ALIGN_TOLERANCE = 0.02 * (Math.PI / 180);
 const ALIGN_SETTLED_SPIN = 0.0005;
 
 const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));

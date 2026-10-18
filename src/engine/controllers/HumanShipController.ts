@@ -6,7 +6,7 @@ export default class HumanShipController extends ShipController {
   private inputManager: InputManager;
 
   private currentThrottle: number = 0;
-  private throttleChangeRate: number = 0.01;
+  private throttleChangeRate: number = 0.0005;
 
   constructor(inputManager: InputManager) {
     super();

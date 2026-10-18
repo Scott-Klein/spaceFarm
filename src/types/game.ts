@@ -1,7 +1,5 @@
 // Types shared by the engine and the UI. Kept out of the stores so engine code never imports pinia.
 
-import type { GameObject } from "@/engine";
-
 export interface PlayerState {
   speed: number;
   maxSpeed: number;
@@ -15,7 +13,6 @@ export interface PlayerState {
 export type CommandType = 'Align';
 export interface Command {
   target?: string;
-  targetObject?: GameObject;
   command:  CommandType // more commands here as needed when the ui ideas come through
 }
 
