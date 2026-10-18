@@ -10,10 +10,10 @@ export interface ControlInput {
   action?: string;
 }
 
-export default abstract class Controller {
-  protected controlledObject: GameObject | null = null;
+export default abstract class Controller<T extends GameObject = GameObject> {
+  protected controlledObject: T | null = null;
 
-  possess(gameObject: GameObject): void {
+  possess(gameObject: T): void {
     this.controlledObject = gameObject;
   }
 
@@ -21,7 +21,7 @@ export default abstract class Controller {
     this.controlledObject = null;
   }
 
-  getControlledObject(): GameObject | null {
+  getControlledObject(): T | null {
     return this.controlledObject;
   }
 

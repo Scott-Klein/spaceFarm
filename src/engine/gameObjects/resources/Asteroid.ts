@@ -8,6 +8,11 @@ class Asteroid extends RenderableObject {
 
   }
 
+  async create(): Promise<string> {
+    await super.create();
+    return `${this.getLabel()}:${crypto.randomUUID()}`
+  }
+
   protected createMeshes(): Mesh[] {
     return [createSphere($engine, { diameter: 1 })];
   }

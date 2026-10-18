@@ -1,3 +1,5 @@
+import type { Command } from "@/types/game";
+
 export type KeyCommand =
   | 'forward'
   | 'backward'
@@ -81,7 +83,7 @@ export default class InputManager {
   /**
    * Call every frame, not physics tick
    */
-  update(): void {
+  update(commands: Command[]): void {
     // Execute callbacks for active commands (held keys)
     for (const [command, callback] of this.commandCallbacks.entries()) {
       if (this.isCommandActive(command)) {

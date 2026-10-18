@@ -1,22 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
+import type { CameraMode, Command, CommandType, Marker, PlayerState } from '@/types/game';
 
-export interface PlayerState {
-  speed: number;
-  maxSpeed: number;
-  throttle: number;
-  pitch: number;
-  roll: number;
-  yaw: number;
-}
-
-export type CameraMode = 'free' | 'follow';
-export interface Marker {
-  x: number;
-  y: number;
-  label: string;
-  distance: number;
-}
 /**
  * Game state store - Bridge between game engine and UI
  * The game engine writes to this store, UI components read from it
@@ -32,6 +17,8 @@ const useGameStore = defineStore('game', () => {
     roll: 0,
     yaw: 0,
   });
+
+  const commandQueue = ref<Command[]>([])
 
   const markers = ref<Marker[]>([]);
 
@@ -51,6 +38,17 @@ const useGameStore = defineStore('game', () => {
 
   function updatePlayerThrottle(throttle: number) {
     player.value.throttle = throttle;
+  }
+
+  const pushCommand = (key: string, command: CommandType) => {
+    commandQueue.value.push({target: key, command})
+  }
+
+  const drainCommandQueue = (): Command[] => {
+    const commands = commandQueue.value;
+    commandQueue.value = [];
+
+    return commands;
   }
 
   function updatePlayerOrientation(pitch: number, roll: number, yaw: number) {
@@ -90,6 +88,8 @@ const useGameStore = defineStore('game', () => {
     updatePlayerState,
     setCameraMode,
     toggleCameraMode,
+    pushCommand,
+    drainCommandQueue
   };
 });
 

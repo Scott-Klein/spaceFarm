@@ -2,8 +2,10 @@ import { createSphere, createStandardMaterial, type Mesh } from '@babylonjs/lite
 import RenderableObject from './RenderableObject';
 
 export default class Planet extends RenderableObject {
-  async create(): Promise<void> {
+  async create(): Promise<string> {
     await super.create();
+
+    return `${this.getLabel()}:${crypto.randomUUID()}`;
   }
 
   protected createMeshes(): Mesh[] {

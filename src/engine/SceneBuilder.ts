@@ -103,7 +103,7 @@ export default class SceneBuilder {
     const humanController = new HumanController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
     // create() must finish first: light group setup needs the meshes
-    await this.gameEngine.setPlayerObject(playerShip);
+    await this.gameEngine.addGameObject(playerShip, true);
     this.gameEngine.lightSystem.RegisterGroup(playerShip, 'local');
   }
 

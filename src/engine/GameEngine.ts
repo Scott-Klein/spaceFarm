@@ -5,7 +5,7 @@ import useGameStore from '@/stores/gameState';
 import { onBeforeRender, vec3 } from '@babylonjs/lite';
 import LightSystem from './LightSystem';
 import { distance } from '@/utils/extensions';
-import type Spaceship from './ships/Spaceship';
+import Spaceship from './ships/Spaceship';
 type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
@@ -24,7 +24,7 @@ export default class GameEngine {
   public lightSystem: LightSystem;
   private cameraController: CameraController;
   private inputManager: InputManager;
-  private gameObjects: GameObject[] = [];
+  private gameObjects: Map<string, GameObject> = new Map<string, GameObject>();
   private player: Spaceship | null = null;
   private selectedObject: GameObject | null = null;
   private gameUi: GameStore = useGameStore();
@@ -88,12 +88,12 @@ export default class GameEngine {
     }
 
     this.gameUi.markers = [];
-    this.gameObjects.forEach((x) => {
+    for (const [key, x] of this.gameObjects) {
       const w2s = this.cameraController.world2Screen(x.position);
-      if (w2s.behindCamera) return;
+      if (w2s.behindCamera) continue;
       const dist = distance(x.position, this.player?.position || vec3(0, 0, 0));
-      this.gameUi.markers.push({ x: w2s.x, y: w2s.y, label: x.getLabel(), distance: dist });
-    });
+      this.gameUi.markers.push({ x: w2s.x, y: w2s.y, label: x.getLabel(), distance: dist, key: key });
+    }
   }
 
   private updatePhysics(): void {
@@ -111,8 +111,9 @@ export default class GameEngine {
    * @param deltaTime time since the last frame in ms
    */
   private updateRender(deltaTime: number): void {
+    const commands = this.gameUi.drainCommandQueue();
     // Read input state every frame, wouldn't do it in physics because we can multiple ticks per frame and it would waste
-    this.inputManager.update();
+    this.inputManager.update(commands);
 
     // Update all game objects
     for (const gameObject of this.gameObjects.values()) {
@@ -125,17 +126,15 @@ export default class GameEngine {
     this.lightSystem.update();
   }
 
-  async addGameObject(gameObject: GameObject): Promise<void> {
-    await gameObject.create();
-    this.gameObjects.push(gameObject);
-  }
+  async addGameObject(gameObject: GameObject, player?: boolean): Promise<void> {
+    const k = await gameObject.create();
+    this.gameObjects.set(k, gameObject);
 
-  async setPlayerObject(player: Spaceship): Promise<void> {
-    await player.create();
-    this.gameObjects.push(player);
-    this.player = player;
-    this.player.isPlayer = true;
-    this.cameraController.setTarget(player);
+    if (player && gameObject instanceof Spaceship) {
+      this.player = gameObject;
+      this.player.isPlayer = true;
+      this.cameraController.setTarget(gameObject);
+    }
   }
 
   getPlayer(): GameObject {
@@ -144,10 +143,6 @@ export default class GameEngine {
     } else {
       throw Error('Scene wasnt set up correctly, cant find a player?');
     }
-  }
-
-  getAllGameObjects(): GameObject[] {
-    return this.gameObjects;
   }
 
   getSelectedObject(): GameObject | null {

@@ -8,7 +8,13 @@ export default class SpaceStation extends RenderableObject {
     this.modelPath = modelPath;
   }
 
-  async create(): Promise<void> {
-    await this.loadModelAsync();
+    getLabel() {
+    return 'SpaceStation'
+  }
+
+  async create(): Promise<string> {
+    await super.create();
+
+    return `${this.getLabel()}:${crypto.randomUUID()}`
   }
 }

@@ -3,7 +3,7 @@
     <div
       class="cursor-pointer absolute -translate-y-1/2 pointer-events-auto hover:outline outline-white/50"
       v-for="m in gameStore.markers"
-      :key="`${m.label}`"
+      :key="`${m.key}`"
       :style="{ left: `${m.x}px`, top: `${m.y}px` }"
       @contextmenu.prevent.stop="openMenu($event, m)"
     >
@@ -16,7 +16,7 @@
       @pointerdown.stop
     >
       <ul class="list-disc-none cursor-pointer">
-        <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Align to</li>
+        <li class="px-1 py-0.5 hover:bg-white/10 transition-colors" @click="align">Align to</li>
         <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Some other idea here</li>
         <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">Another idea later</li>
         <li class="px-1 py-0.5 hover:bg-white/10 transition-colors">And so on</li>
@@ -26,7 +26,8 @@
 </template>
 
 <script setup lang="ts">
-import useGameStore, { type Marker } from '@/stores/gameState';
+import useGameStore from '@/stores/gameState';
+import type { Marker } from '@/types/game';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 const gameStore = useGameStore();
@@ -48,6 +49,12 @@ const closeMenu = () => {
   menuOpen.value = false;
   menuMarker.value = null;
 };
+
+const align = () => {
+  if(menuMarker.value) {
+    gameStore.pushCommand(menuMarker.value.key, 'Align')
+  }
+}
 
 const onKeydown = (event: KeyboardEvent) => {
   if (event.key === 'Escape') closeMenu();

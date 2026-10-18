@@ -28,18 +28,19 @@ export default class RenderableObject extends GameObject {
     this.logger = useLogStore();
   }
 
-  async create(): Promise<void> {
+  async create(): Promise<string> {
+    const key = `${this.getLabel()}:${crypto.randomUUID()}`
     let container: AssetContainer | null = null;
     let meshes: Mesh[];
     if (this.modelPath) {
       container = await this.loadModelAsync();
-      if (!container) return;
+      if (!container) return key;
       meshes = getContainerMeshes(container);
     } else {
       meshes = this.createMeshes();
     }
 
-    if (this.disposed) return; // just in case theres a race
+    if (this.disposed) return key; // just in case theres a race
 
     if (this.mesh.length) {
       for (const m of this.mesh) removeFromScene($scene, m);
@@ -64,6 +65,8 @@ export default class RenderableObject extends GameObject {
     this.root!.rotationQuaternion.copyFrom(this.orientation);
 
     if (container) this.onModelLoaded(container);
+
+    return key;
   }
 
   // hook for subclasses; runs before the meshes are added to the scene.
