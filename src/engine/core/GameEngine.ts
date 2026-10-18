@@ -90,6 +90,7 @@ export default class GameEngine {
 
     this.gameUi.markers = [];
     for (const [key, x] of this.gameObjects) {
+      if (x.hideFromInterface) continue; // hidden objects shouldnt go on the ui.
       const w2s = this.cameraController.world2Screen(x.position);
       if (w2s.behindCamera) continue;
       const dist = distance(x.position, this.player?.position || vec3(0, 0, 0));
@@ -147,6 +148,12 @@ export default class GameEngine {
       this.player.isPlayer = true;
       this.cameraController.setTarget(gameObject);
     }
+  }
+
+  removeGameObject(key: string): boolean {
+    const go = this.gameObjects.get(key);
+    go?.dispose();
+    return this.gameObjects.delete(key);
   }
 
   getPlayer(): GameObject {

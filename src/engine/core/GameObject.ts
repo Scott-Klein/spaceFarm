@@ -11,7 +11,8 @@ export default abstract class GameObject {
   private controller: Controller | null = null;
   private lastInput: ControlInput | null = null;
   protected label = 'ERROR_EMPTY_DISPLAY_LABEL';
-
+  public hideFromInterface = false;
+  
   constructor() {
     this.position = { x: 0, y: 0, z: 0};
     this.orientation = { x: 0, y: 0, z: 0, w: 1 }; // identity quaternion, no transforms yet
