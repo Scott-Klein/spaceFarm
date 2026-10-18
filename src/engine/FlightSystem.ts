@@ -109,6 +109,11 @@ export default class FlightSystem {
   }
 
   // Getters for flight data
+  /** Ship-local turn rate per physics tick: x = pitch, y = yaw, z = roll. */
+  getAngularVelocity(): Vec3 {
+    return this.angularVelocity;
+  }
+
   getVelocity(): Vec3 {
     return { ...this.velocity };
   }

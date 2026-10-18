@@ -3,16 +3,20 @@ import type { FlightInput } from '@/engine/FlightSystem';
 import type Spaceship from '@/engine/ships/Spaceship';
 import { normalizeVec3, subtractVec3, type Vec3 } from '@babylonjs/lite';
 import { invertQuat, rotateVec3ByQuat } from '@/utils/extensions';
-import type { CommandType } from '@/types/game';
+import type { Command } from '@/types/game';
 
 /** A multi-frame thing the ship is doing: Align, Approach, Follow, Patrol... */
 export interface ShipAction {
-  readonly name: CommandType;
+  readonly command: Command;
   /**
    * Called every frame. Returns this frame's stick input and whether it's finished.
    * Leave a field undefined (e.g. thrust) to let the controller's own input fill it.
    */
-  update(ship: Spaceship, controller: ShipController, dt: number): { flight: FlightInput; done: boolean };
+  update(
+    ship: Spaceship,
+    controller: ShipController,
+    dt: number,
+  ): { flight: FlightInput; done: boolean };
 }
 
 /**
@@ -20,24 +24,24 @@ export interface ShipAction {
  * subclasses only say what they want this frame via decide().
  */
 export default abstract class ShipController extends Controller<Spaceship> {
-  private action: ShipAction | null = null;
+  private commands: Command[] = [];
 
   // --- action slot: shared by human + AI ---
 
-  setAction(action: ShipAction | null): void {
-    this.action = action;
+  pushCommands(commands: Command[]) {
+    this.commands = commands; // at the moment overwrites commands.
   }
 
-  clearAction(): void {
-    this.action = null;
+  clearCommands(): void {
+    this.commands = [];
   }
 
-  getAction(): ShipAction | null {
-    return this.action;
+  getAction(): Command[] {
+    return this.commands;
   }
 
   isBusy(): boolean {
-    return this.action !== null;
+    return !!this.commands.length;
   }
 
   // --- the frame loop: subclasses implement decide(), not this ---
@@ -46,20 +50,44 @@ export default abstract class ShipController extends Controller<Spaceship> {
     const ship = this.controlledObject;
     if (!ship) return null;
 
-    // subclass goes first: it may cancel or replace the action (sticks touched, AI changed its mind)
+    // subclass goes first: it may cancel or replace commands (sticks touched, AI changed its mind)
     const own = this.decide(dt) ?? {};
 
-    const action = this.action;
-    if (!action) return { flight: own };
+    // commands run one at a time, oldest first; two at once would fight over the sticks
+    const current = this.commands[0];
+    if (!current) return { flight: own };
 
-    const result = action.update(ship, this, dt);
-    if (result.done) {
-      this.action = null;
-      this.onActionDone(action);
+    let result: CommandResult;
+    switch (current.command) {
+      case 'Align':
+        result = this.align(current);
+        break;
     }
 
-    // action steers; anything it leaves undefined falls back to the subclass's input
+    if (result.done) this.commands.shift();
+
+    // command steers; anything it leaves undefined falls back to the subclass's input
     return { flight: { ...own, ...stripUndefined(result.flight) } };
+  }
+
+  /** Turn the nose onto the target. Leaves thrust and roll to the subclass. */
+  protected align(command: Command): CommandResult {
+    const target = command.targetObject;
+    if (!target) return { flight: {}, done: true };
+
+    const local = this.directionInShipSpace(target.position);
+    const { pitch, yaw } = this.steerToward(local);
+
+    // the ship carries angular momentum, so brake the turn rate or it sails past the target
+    const spin = this.controlledObject!.getFlightSystem().getAngularVelocity();
+    const flight: FlightInput = {
+      pitch: clamp1(pitch! - spin.x * ALIGN_DAMPING),
+      yaw: clamp1(yaw! - spin.y * ALIGN_DAMPING),
+    };
+
+    const onTarget = this.angleTo(target.position) < ALIGN_TOLERANCE;
+    const settled = Math.hypot(spin.x, spin.y) < ALIGN_SETTLED_SPIN;
+    return { flight, done: onTarget && settled };
   }
 
   /** The subclass's own input this frame. Human = keyboard, AI = usually nothing. */
@@ -92,6 +120,13 @@ export default abstract class ShipController extends Controller<Spaceship> {
     return { yaw: clamp1(yaw * gain), pitch: clamp1(pitch * gain) };
   }
 }
+
+type CommandResult = { flight: FlightInput; done: boolean };
+
+// align tuning: damping is in stick units per (radian per tick) of spin
+const ALIGN_DAMPING = 30;
+const ALIGN_TOLERANCE = 1 * (Math.PI / 180);
+const ALIGN_SETTLED_SPIN = 0.0005;
 
 const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
 

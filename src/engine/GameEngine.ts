@@ -112,8 +112,18 @@ export default class GameEngine {
    */
   private updateRender(deltaTime: number): void {
     const commands = this.gameUi.drainCommandQueue();
-    // Read input state every frame, wouldn't do it in physics because we can multiple ticks per frame and it would waste
-    this.inputManager.update(commands);
+
+    commands.forEach(x => {
+      if (x.target && this.gameObjects.has(x.target)) {
+        x.targetObject = this.gameObjects.get(x.target);
+      }
+    })
+
+    const playerController = this.player?.getController();
+    if (playerController) {
+      // have the controller swallow the commands.
+      playerController.pushCommands(commands);
+    }
 
     // Update all game objects
     for (const gameObject of this.gameObjects.values()) {
