@@ -1,12 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import type { CameraMode, Command, CommandType, Marker, PlayerState } from '@/types/game';
+import type { CameraMode, Command, CommandType, DroneState, Marker, PlayerState } from '@/types/game';
 
-
-export interface Drone {
-  type: 'Mining';
-  health: number;
-}
 /**
  * Game state store - Bridge between game engine and UI
  * The game engine writes to this store, UI components read from it
@@ -24,7 +19,7 @@ const useGameStore = defineStore('game', () => {
   });
 
   const commandQueue = ref<Command[]>([])
-  const drones = ref<Drone[]>([]);
+  const drones = ref<DroneState[]>([]);
   const markers = ref<Marker[]>([]);
 
   const frameRate = ref<string>();

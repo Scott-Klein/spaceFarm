@@ -6,7 +6,8 @@ import AIShipController from '@/engine/controllers/AIShipController';
 
 /** Hangar for a ship's drones: owns the list, launches and recalls them. */
 export default class DroneBay {
-  private drones: Drone[] = [];
+  // keyed by the engine's object key, so the UI can point at one
+  private drones = new Map<string, Drone>();
   private owner: Spaceship;
   private capacity: number;
 
@@ -17,7 +18,7 @@ export default class DroneBay {
 
   /** Spawn a drone at the owner and hand it to an AI. Null if the bay is full. */
   async launch(engine: GameEngine, type: DroneType): Promise<Drone | null> {
-    if (this.drones.length >= this.capacity) return null;
+    if (this.drones.size >= this.capacity) return null;
 
     const drone = new Drone(type, this.owner);
     // TODO: launch from a bay node on the owner's model rather than its centre
@@ -25,8 +26,8 @@ export default class DroneBay {
     drone.orientation = { ...this.owner.orientation };
 
     drone.possess(new AIShipController());
-    await engine.addGameObject(drone);
-    this.drones.push(drone);
+    const key = await engine.addGameObject(drone);
+    this.drones.set(key, drone);
     return drone;
   }
 
@@ -35,7 +36,7 @@ export default class DroneBay {
     void drone;
   }
 
-  getDrones(): readonly Drone[] {
+  getDrones(): ReadonlyMap<string, Drone> {
     return this.drones;
   }
 

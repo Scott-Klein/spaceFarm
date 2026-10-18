@@ -1,7 +1,6 @@
 export interface Ship {
   crewList: Crew[];
   storage: Resource[];
-  drones: Drone[];
 }
 
 export interface Crew {
@@ -14,15 +13,7 @@ export interface Resource {
   amount: number;
 }
 
-export interface Drone {
-  type: 'Mining';
-}
-
 export const createDefaultShip = (): Ship => {
-  const defaultDrone: Drone = {
-    type: 'Mining',
-  };
-
   const defaultResources: Resource = {
     type: 'Ice',
     amount: 100,
@@ -36,6 +27,5 @@ export const createDefaultShip = (): Ship => {
   return {
     crewList: [defaultCrew],
     storage: [defaultResources],
-    drones: [defaultDrone],
   };
 };

@@ -5,6 +5,8 @@ import { normalizeVec3, subtractVec3, type Vec3 } from '@babylonjs/lite';
 import { invertQuat, rotateVec3ByQuat } from '@/utils/extensions';
 import type { Command } from '@/types/game';
 import type GameObject from '@/engine/core/GameObject';
+import { COMMAND_HANDLERS } from './commands';
+import { clamp1 } from './commands/types';
 
 /** A UI command after the engine has looked its target key up in the object map. */
 export type ResolvedCommand = Command & { targetObject: GameObject };
@@ -47,12 +49,7 @@ export default abstract class ShipController extends Controller<Spaceship> {
     const current = this.commands[0];
     if (!current) return { flight: own };
 
-    let result: CommandResult;
-    switch (current.command) {
-      case 'Align':
-        result = this.align(current);
-        break;
-    }
+    const result = COMMAND_HANDLERS[current.command](current, this);
 
     if (result.done) {
       this.commands.shift();
@@ -61,25 +58,6 @@ export default abstract class ShipController extends Controller<Spaceship> {
 
     // command steers; anything it leaves undefined falls back to the subclass's input
     return { flight: { ...own, ...stripUndefined(result.flight) } };
-  }
-
-  /** Turn the nose onto the target. Leaves thrust and roll to the subclass. */
-  protected align(command: ResolvedCommand): CommandResult {
-    const target = command.targetObject;
-
-    const local = this.directionInShipSpace(target.position);
-    const { pitch, yaw } = this.steerToward(local);
-
-    // the ship carries angular momentum, so brake the turn rate or it sails past the target
-    const spin = this.controlledObject!.getFlightSystem().getAngularVelocity();
-    const flight: FlightInput = {
-      pitch: clamp1(pitch! - spin.x * ALIGN_DAMPING),
-      yaw: clamp1(yaw! - spin.y * ALIGN_DAMPING),
-    };
-
-    const onTarget = this.angleTo(target.position) < ALIGN_TOLERANCE;
-    const settled = Math.hypot(spin.x, spin.y) < ALIGN_SETTLED_SPIN;
-    return { flight, done: onTarget && settled };
   }
 
   /** The subclass's own input this frame. Human = keyboard, AI = usually nothing. */
@@ -92,7 +70,7 @@ export default abstract class ShipController extends Controller<Spaceship> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected onCommandDone(command: ResolvedCommand): void {}
 
-  // --- steering helpers actions lean on ---
+  // --- steering helpers commands lean on ---
 
   /** World point -> normalized ship-local direction (x = right, y = up, z = forward). */
   directionInShipSpace(worldPoint: Vec3): Vec3 {
@@ -115,15 +93,6 @@ export default abstract class ShipController extends Controller<Spaceship> {
     return { yaw: clamp1(yaw * gain), pitch: clamp1(pitch * gain) };
   }
 }
-
-type CommandResult = { flight: FlightInput; done: boolean };
-
-// align tuning: damping is in stick units per (radian per tick) of spin
-const ALIGN_DAMPING = 30;
-const ALIGN_TOLERANCE = 0.02 * (Math.PI / 180);
-const ALIGN_SETTLED_SPIN = 0.0005;
-
-const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
 
 const stripUndefined = <T extends object>(o: T): Partial<T> =>
   Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;

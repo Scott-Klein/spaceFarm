@@ -60,15 +60,46 @@ export default class GameEngine {
    */
   private update(deltaTime: number): void {
     this.accumulator += deltaTime;
-    this.frameTimeAccumulator += deltaTime;
-    this.frameCountAccumulator++;
     while (this.accumulator >= this.DELTA_RATE) {
       this.updatePhysics();
       this.accumulator -= this.DELTA_RATE;
     }
 
     this.updateRender(deltaTime);
+    // last: markers need this frame's camera
+    this.updateInterface(deltaTime);
+  }
 
+  private updatePhysics(): void {
+    // Update all game objects
+    for (const gameObject of this.gameObjects.values()) {
+      gameObject.updatePhysics();
+    }
+  }
+
+  /**
+   * Everything that crosses the engine/UI boundary, once per frame.
+   * In: drains the UI command queue into the player's controller (acted on next frame).
+   * Out: frame rate, player flight state, player's drones, screen markers.
+   */
+  private updateInterface(deltaTime: number): void {
+    const commands = this.gameUi.drainCommandQueue();
+
+    // copy into plain objects: the store's are reactive proxies, and a GameObject assigned
+    // onto one comes back out proxied. Commands whose target is gone are dropped.
+    const resolved = commands.flatMap((c) => {
+      const targetObject = c.target ? this.gameObjects.get(c.target) : undefined;
+      return targetObject ? [{ ...c, targetObject }] : [];
+    });
+
+    const playerController = this.player?.getController();
+    if (playerController instanceof ShipController) {
+      // have the controller swallow the commands.
+      playerController.pushCommands(resolved);
+    }
+
+    this.frameTimeAccumulator += deltaTime;
+    this.frameCountAccumulator++;
     if (this.frameTimeAccumulator > 1000) {
       const gputime = $engine.gpuFrameTimeMs;
       this.gameUi.frameRate = `${this.frameCountAccumulator} || gpu ${gputime}`.toString();
@@ -88,6 +119,11 @@ export default class GameEngine {
       });
     }
 
+    const bay = this.player?.droneBay;
+    this.gameUi.drones = bay
+      ? [...bay.getDrones()].map(([key, d]) => ({ key, type: d.droneType, health: d.health, cargo: d.cargo }))
+      : [];
+
     this.gameUi.markers = [];
     for (const [key, x] of this.gameObjects) {
       if (x.hideFromInterface) continue; // hidden objects shouldnt go on the ui.
@@ -95,13 +131,6 @@ export default class GameEngine {
       if (w2s.behindCamera) continue;
       const dist = distance(x.position, this.player?.position || vec3(0, 0, 0));
       this.gameUi.markers.push({ x: w2s.x, y: w2s.y, label: x.getLabel(), distance: dist, key: key });
-    }
-  }
-
-  private updatePhysics(): void {
-    // Update all game objects
-    for (const gameObject of this.gameObjects.values()) {
-      gameObject.updatePhysics();
     }
   }
 
@@ -113,21 +142,6 @@ export default class GameEngine {
    * @param deltaTime time since the last frame in ms
    */
   private updateRender(deltaTime: number): void {
-    const commands = this.gameUi.drainCommandQueue();
-
-    // copy into plain objects: the store's are reactive proxies, and a GameObject assigned
-    // onto one comes back out proxied. Commands whose target is gone are dropped.
-    const resolved = commands.flatMap((c) => {
-      const targetObject = c.target ? this.gameObjects.get(c.target) : undefined;
-      return targetObject ? [{ ...c, targetObject }] : [];
-    });
-
-    const playerController = this.player?.getController();
-    if (playerController instanceof ShipController) {
-      // have the controller swallow the commands.
-      playerController.pushCommands(resolved);
-    }
-
     // Update all game objects
     for (const gameObject of this.gameObjects.values()) {
       gameObject.updateRender(deltaTime);
@@ -139,7 +153,7 @@ export default class GameEngine {
     this.lightSystem.update();
   }
 
-  async addGameObject(gameObject: GameObject, player?: boolean): Promise<void> {
+  async addGameObject(gameObject: GameObject, player?: boolean): Promise<string> {
     const k = await gameObject.create();
     this.gameObjects.set(k, gameObject);
 
@@ -148,6 +162,7 @@ export default class GameEngine {
       this.player.isPlayer = true;
       this.cameraController.setTarget(gameObject);
     }
+    return k;
   }
 
   removeGameObject(key: string): boolean {

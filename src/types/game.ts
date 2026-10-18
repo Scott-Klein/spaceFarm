@@ -1,4 +1,5 @@
 // Types shared by the engine and the UI. Kept out of the stores so engine code never imports pinia.
+import type { DroneType } from '@/engine/objects/ships/registry';
 
 export interface PlayerState {
   speed: number;
@@ -23,4 +24,12 @@ export interface Marker {
   label: string;
   distance: number;
   key: string
+}
+
+/** Snapshot of one of the player's drones, written by the engine every frame. */
+export interface DroneState {
+  key: string;
+  type: DroneType;
+  health: number;
+  cargo: number;
 }

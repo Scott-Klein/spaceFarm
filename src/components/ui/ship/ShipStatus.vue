@@ -1,7 +1,6 @@
 <template>
   <div class="fixed bottom-10 left-10 bg-slate-800 text-white">
     <p>crew:{{ shipData.crewList }}</p>
-    <p>drones:{{ shipData.drones }}</p>
     <p>storage:{{ shipData.storage }}</p>
   </div>
 </template>

@@ -17,6 +17,7 @@ import Planet from '@/engine/objects/Planet';
 import { makeStarMapBitmap } from '@/engine/stars/makeStarMapBitmap';
 import Asteroid from '@/engine/objects/resources/Asteroid';
 import HumanShipController from '@/engine/controllers/HumanShipController';
+import DroneBay from '@/engine/systems/DroneBay';
 
 export interface SceneConfig {
   asteroidCount?: number;
@@ -105,6 +106,11 @@ export default class SceneBuilder {
     // create() must finish first: light group setup needs the meshes
     await this.gameEngine.addGameObject(playerShip, true);
     this.gameEngine.lightSystem.RegisterGroup(playerShip, 'local');
+
+    // TODO: temporary, just so the drone window has something to show
+    playerShip.droneBay = new DroneBay(playerShip, 4);
+    await playerShip.droneBay.launch(this.gameEngine, 'mining');
+    await playerShip.droneBay.launch(this.gameEngine, 'mining');
   }
 
   private async createPlanet(): Promise<void> {
