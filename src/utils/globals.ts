@@ -1,5 +1,5 @@
 import type { EngineContext, SceneContext } from '@babylonjs/lite';
-import useLogStore from './stores/logs';
+import useLogStore from '@/stores/logs';
 
 declare global {
   var $engine: EngineContext;

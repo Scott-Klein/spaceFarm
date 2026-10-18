@@ -1,6 +1,6 @@
-import Controller, { type ControlInput } from '../Controller';
-import type { FlightInput } from '../FlightSystem';
-import InputManager from '../InputManager';
+import Controller, { type ControlInput } from './Controller';
+import type { FlightInput } from '@/engine/systems/FlightSystem';
+import InputManager from '@/engine/core/InputManager';
 
 export default class HumanController extends Controller {
   private inputManager: InputManager;

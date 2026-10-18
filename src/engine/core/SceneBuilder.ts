@@ -1,8 +1,8 @@
 import GameEngine from './GameEngine';
-import Spaceship from './ships/Spaceship';
-import AIController from './controllers/AIController';
+import Spaceship from '@/engine/objects/ships/Spaceship';
+import AIController from '@/engine/controllers/AIController';
 import useLogStore from '@/stores/logs';
-import SpaceStation from './ships/stations/SpaceStation';
+import SpaceStation from '@/engine/objects/stations/SpaceStation';
 import {
   addToScene,
   createHemisphericLight,
@@ -13,10 +13,10 @@ import {
   type Vec3Tuple,
 } from '@babylonjs/lite';
 import MathBro from '@/utils/MathBro';
-import Planet from './game/Planet';
-import { makeStarMapBitmap } from './makeStarMapBitmap';
-import Asteroid from './gameObjects/resources/Asteroid';
-import HumanShipController from './controllers/HumanShipController';
+import Planet from '@/engine/objects/Planet';
+import { makeStarMapBitmap } from '@/engine/stars/makeStarMapBitmap';
+import Asteroid from '@/engine/objects/resources/Asteroid';
+import HumanShipController from '@/engine/controllers/HumanShipController';
 
 export interface SceneConfig {
   asteroidCount?: number;

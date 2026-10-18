@@ -1,4 +1,4 @@
-import GameObject from './GameObject';
+import GameObject from '@/engine/core/GameObject';
 import useLogStore from '@/stores/logs';
 import {
   type ArcRotateCamera,

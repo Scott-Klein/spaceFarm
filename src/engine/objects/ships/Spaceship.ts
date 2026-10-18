@@ -1,6 +1,6 @@
-import FlightSystem from '../FlightSystem';
-import type { ControlInput } from '../Controller';
-import RenderableObject from '../game/RenderableObject';
+import FlightSystem from '@/engine/systems/FlightSystem';
+import type { ControlInput } from '@/engine/controllers/Controller';
+import RenderableObject from '@/engine/objects/RenderableObject';
 import {
   addVec3InPlace,
   createBox,

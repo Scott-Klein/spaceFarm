@@ -1,6 +1,6 @@
 // OffscreenCanvas does not exist in Node. The generator only ever asks its canvas for
 // createImageData / putImageData, so the harness (and only the harness) supplies this
-// stand-in that captures the pixels. src/engine/starMap.ts itself stays dependency free,
+// stand-in that captures the pixels. src/engine/stars/starMap.ts itself stays dependency free,
 // and browser.mjs checks that the result is byte-identical to real Chromium.
 import os from 'node:os';
 import path from 'node:path';
@@ -20,7 +20,7 @@ class FakeCanvas {
   }
 }
 
-export const MODULE = path.resolve(import.meta.dirname, '../../src/engine/starMap.ts');
+export const MODULE = path.resolve(import.meta.dirname, '../../src/engine/stars/starMap.ts');
 /** Rendered images go here unless --out says otherwise: never into the repo. */
 export const OUT = path.join(os.tmpdir(), 'spacefarm-starmap');
 

@@ -1,4 +1,4 @@
-import RenderableObject from '@/engine/game/RenderableObject';
+import RenderableObject from '@/engine/objects/RenderableObject';
 import { createSphere, createStandardMaterial, type Mesh } from '@babylonjs/lite';
 
 class Asteroid extends RenderableObject {

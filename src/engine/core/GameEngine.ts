@@ -1,12 +1,12 @@
 import GameObject from './GameObject';
-import CameraController from './CameraController';
+import CameraController from '@/engine/systems/CameraController';
 import InputManager from './InputManager';
 import useGameStore from '@/stores/gameState';
 import { onBeforeRender, vec3 } from '@babylonjs/lite';
-import LightSystem from './LightSystem';
+import LightSystem from '@/engine/systems/LightSystem';
 import { distance } from '@/utils/extensions';
-import Spaceship from './ships/Spaceship';
-import ShipController from './controllers/ShipController';
+import Spaceship from '@/engine/objects/ships/Spaceship';
+import ShipController from '@/engine/controllers/ShipController';
 type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback

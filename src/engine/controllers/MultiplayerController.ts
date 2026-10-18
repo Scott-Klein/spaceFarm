@@ -1,5 +1,5 @@
 import type { Vec3 } from '@babylonjs/lite';
-import Controller, { type ControlInput } from '../Controller';
+import Controller, { type ControlInput } from './Controller';
 
 export interface NetworkInput {
   movement: Vec3;

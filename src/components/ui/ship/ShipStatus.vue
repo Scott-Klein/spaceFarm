@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { createDefaultShip, type Ship } from '@/engine/game/Ship';
+import { createDefaultShip, type Ship } from '@/types/ship';
 import { ref } from 'vue';
 
 const shipData = ref<Ship>(createDefaultShip());

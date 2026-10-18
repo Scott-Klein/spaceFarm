@@ -1,6 +1,6 @@
 
-import type GameObject from './GameObject';
-import type { FlightInput } from './FlightSystem';
+import type GameObject from '@/engine/core/GameObject';
+import type { FlightInput } from '@/engine/systems/FlightSystem';
 import type { Vec3 } from '@babylonjs/lite';
 
 export interface ControlInput {

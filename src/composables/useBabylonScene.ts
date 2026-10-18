@@ -1,4 +1,4 @@
-import { initialise } from '@/globals';
+import { initialise } from '@/utils/globals';
 import {
   createEngine,
   createSceneContext,

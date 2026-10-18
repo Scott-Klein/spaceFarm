@@ -1,10 +1,10 @@
-import Controller, { type ControlInput } from '@/engine/Controller';
-import type { FlightInput } from '@/engine/FlightSystem';
-import type Spaceship from '@/engine/ships/Spaceship';
+import Controller, { type ControlInput } from './Controller';
+import type { FlightInput } from '@/engine/systems/FlightSystem';
+import type Spaceship from '@/engine/objects/ships/Spaceship';
 import { normalizeVec3, subtractVec3, type Vec3 } from '@babylonjs/lite';
 import { invertQuat, rotateVec3ByQuat } from '@/utils/extensions';
 import type { Command } from '@/types/game';
-import type GameObject from '@/engine/GameObject';
+import type GameObject from '@/engine/core/GameObject';
 
 /** A UI command after the engine has looked its target key up in the object map. */
 export type ResolvedCommand = Command & { targetObject: GameObject };

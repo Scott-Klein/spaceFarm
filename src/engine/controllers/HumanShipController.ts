@@ -1,5 +1,5 @@
-import type { FlightInput } from '../FlightSystem';
-import type InputManager from '../InputManager';
+import type { FlightInput } from '@/engine/systems/FlightSystem';
+import type InputManager from '@/engine/core/InputManager';
 import ShipController from './ShipController';
 
 export default class HumanShipController extends ShipController {

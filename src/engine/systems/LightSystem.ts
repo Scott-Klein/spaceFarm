@@ -10,8 +10,8 @@ import {
   type DirectionalLight,
   type Mesh,
 } from '@babylonjs/lite';
-import GameObject from './GameObject';
-import type RenderableObject from './game/RenderableObject';
+import GameObject from '@/engine/core/GameObject';
+import type RenderableObject from '@/engine/objects/RenderableObject';
 
 export interface LightGroup {
   light: DirectionalLight;

@@ -156,7 +156,7 @@ import {
   STAR_MAP_RANGES,
   type StarMapOverrides,
   type StarMapRange,
-} from '@/engine/starMap';
+} from '@/engine/stars/starMap';
 
 type Tree = { [key: string]: Tree | number | number[] };
 type Range = StarMapRange<number | number[]>;
@@ -274,9 +274,9 @@ let pixels: ImageData | undefined; // the finished map, for the sphere view
 // only for this comparison. A fresh worker per render means a stale one can just be killed.
 const spawn = {
   new: () =>
-    new Worker(new URL('../engine/starMap.worker.ts', import.meta.url), { type: 'module' }),
+    new Worker(new URL('../engine/stars/starMap.worker.ts', import.meta.url), { type: 'module' }),
   old: () =>
-    new Worker(new URL('../engine/starSkyBox.worker.ts', import.meta.url), { type: 'module' }),
+    new Worker(new URL('../engine/stars/starSkyBox.worker.ts', import.meta.url), { type: 'module' }),
 };
 const render = (
   which: (typeof generators)[number],

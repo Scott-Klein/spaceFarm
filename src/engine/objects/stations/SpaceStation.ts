@@ -1,4 +1,4 @@
-import RenderableObject from '@/engine/game/RenderableObject';
+import RenderableObject from '@/engine/objects/RenderableObject';
 
 
 export default class SpaceStation extends RenderableObject {

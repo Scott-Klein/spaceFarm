@@ -1,4 +1,4 @@
-import GameObject from '@/engine/GameObject';
+import GameObject from '@/engine/core/GameObject';
 import useLogStore from '@/stores/logs';
 import {
   addToScene,

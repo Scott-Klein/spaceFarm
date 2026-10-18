@@ -6,7 +6,7 @@
       class="h-full flex-5 min-h-0 min-w-0 outline-none absolute inset-0 w-full h-full outline-none"
     ></canvas>
     <OverlayUI />
-    <OverviewWIndow />
+    <OverviewWindow />
     <FpsCounter />
     <ShipStatus />
     <ShipUi />
@@ -20,13 +20,13 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import setupBabylonScene from '@/composables/useBabylonScene';
 import { GameEngine, SceneBuilder } from '@/engine';
 import useGameStore from '@/stores/gameState';
-//import LogWindow from '@/components/LogWindow.vue';
+//import LogWindow from '@/components/ui/LogWindow.vue';
 import ShipUi from '@/components/ui/ship/ShipUi.vue';
-import FpsCounter from '@/components/ui/ship/FpsCounter.vue';
+import FpsCounter from '@/components/ui/FpsCounter.vue';
 import CameraToggle from '@/components/ui/CameraToggle.vue';
 import ShipStatus from '@/components/ui/ship/ShipStatus.vue';
-import OverlayUI from '@/components/OverlayUI.vue';
-import OverviewWIndow from '@/components/ui/OverviewWIndow.vue';
+import OverlayUI from '@/components/ui/OverlayUI.vue';
+import OverviewWindow from '@/components/ui/OverviewWindow.vue';
 import SpeedoMeter from '@/components/ui/SpeedoMeter.vue';
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const gameStore = useGameStore();

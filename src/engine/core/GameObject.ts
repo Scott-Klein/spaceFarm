@@ -1,6 +1,6 @@
 import { addVec3InPlace, type Quat, type Vec3 } from '@babylonjs/lite';
-import type Controller from './Controller';
-import type { ControlInput } from './Controller';
+import type Controller from '@/engine/controllers/Controller';
+import type { ControlInput } from '@/engine/controllers/Controller';
 import { multiplyQuat, normalizeQuat, quatFromEuler } from '@/utils/extensions';
 
 export default abstract class GameObject {

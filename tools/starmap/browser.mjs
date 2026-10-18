@@ -51,7 +51,7 @@ try {
     await page.goto(base + '/');
     for (const o of [{ size: 1024 }, { size: 1024, seed: 3, band: { tilt: 60, node: 25 } }]) {
       const inBrowser = await page.evaluate(async (opts) => {
-        const m = await import('/src/engine/starMap.ts');
+        const m = await import('/src/engine/stars/starMap.ts');
         const cv = m.makeStarMap(opts);
         const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data;
         const h = await crypto.subtle.digest('SHA-1', d);

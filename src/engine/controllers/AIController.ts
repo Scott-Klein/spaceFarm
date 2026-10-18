@@ -1,7 +1,7 @@
 import { normalizeVec3, subtractVec3, type Vec3 } from '@babylonjs/lite';
-import Controller, { type ControlInput } from '../Controller';
-import type { FlightInput } from '../FlightSystem';
-import GameObject from '../GameObject';
+import Controller, { type ControlInput } from './Controller';
+import type { FlightInput } from '@/engine/systems/FlightSystem';
+import GameObject from '@/engine/core/GameObject';
 import useLogStore from '@/stores/logs';
 import MathBro from '@/utils/MathBro';
 import { invertQuat, rotateVec3ByQuat, vec3Length } from '@/utils/extensions';
