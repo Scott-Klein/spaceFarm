@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import type { CameraMode, Command, CommandType, DroneState, Marker, PlayerState } from '@/types/game';
+import type Drone from '@/engine/objects/ships/Drone';
 
 /**
  * Game state store - Bridge between game engine and UI
@@ -38,6 +39,11 @@ const useGameStore = defineStore('game', () => {
 
   const updatePlayerThrottle = (throttle: number) => {
     player.value.throttle = throttle;
+  }
+
+  /** Snapshot a bay's drones (keyed by engine object key) into UI-friendly state. */
+  const updateDrones = (bayDrones: ReadonlyMap<string, Drone> | undefined) => {
+    drones.value = [...(bayDrones ?? [])].map(([key, drone]) => toDroneState(key, drone));
   }
 
   const pushCommand = (key: string, command: CommandType) => {
@@ -82,6 +88,7 @@ const useGameStore = defineStore('game', () => {
     frameRate,
     markers,
     drones,
+    updateDrones,
     updatePlayerSpeed,
     updatePlayerMaxSpeed,
     updatePlayerThrottle,
@@ -92,6 +99,13 @@ const useGameStore = defineStore('game', () => {
     pushCommand,
     drainCommandQueue
   };
+});
+
+const toDroneState = (key: string, drone: Drone): DroneState => ({
+  key,
+  type: drone.droneType,
+  health: drone.health,
+  cargo: drone.cargo,
 });
 
 export default useGameStore;

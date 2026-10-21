@@ -119,10 +119,7 @@ export default class GameEngine {
       });
     }
 
-    const bay = this.player?.droneBay;
-    this.gameUi.drones = bay
-      ? [...bay.getDrones()].map(([key, d]) => ({ key, type: d.droneType, health: d.health, cargo: d.cargo }))
-      : [];
+    this.gameUi.updateDrones(this.player?.droneBay?.getDrones());
 
     this.gameUi.markers = [];
     for (const [key, x] of this.gameObjects) {

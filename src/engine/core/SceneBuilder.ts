@@ -109,8 +109,8 @@ export default class SceneBuilder {
 
     // TODO: temporary, just so the drone window has something to show
     playerShip.droneBay = new DroneBay(playerShip, 4);
-    await playerShip.droneBay.launch(this.gameEngine, 'mining');
-    await playerShip.droneBay.launch(this.gameEngine, 'mining');
+    //await playerShip.droneBay.launch(this.gameEngine, 'mining');
+    //await playerShip.droneBay.launch(this.gameEngine, 'mining');
   }
 
   private async createPlanet(): Promise<void> {

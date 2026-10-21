@@ -8,17 +8,24 @@ import AIShipController from '@/engine/controllers/AIShipController';
 export default class DroneBay {
   // keyed by the engine's object key, so the UI can point at one
   private drones = new Map<string, Drone>();
+  private docked: Drone[] = [];
+  private launched = new Map<string, Drone>();
+
   private owner: Spaceship;
   private capacity: number;
 
   constructor(owner: Spaceship, capacity: number) {
     this.owner = owner;
     this.capacity = capacity;
+
+    for (let i = 0; i < capacity; i++) {
+      this.docked.push(new Drone('mining', this.owner))
+    }
   }
 
   /** Spawn a drone at the owner and hand it to an AI. Null if the bay is full. */
   async launch(engine: GameEngine, type: DroneType): Promise<Drone | null> {
-    if (this.drones.size >= this.capacity) return null;
+
 
     const drone = new Drone(type, this.owner);
     // TODO: launch from a bay node on the owner's model rather than its centre
@@ -36,8 +43,9 @@ export default class DroneBay {
     void drone;
   }
 
-  getDrones(): ReadonlyMap<string, Drone> {
-    return this.drones;
+  /** Every drone this ship owns, docked first, then launched. */
+  getDrones(): Drone[] {
+    return [...this.docked, ...this.launched.values()];
   }
 
   getCapacity(): number {
