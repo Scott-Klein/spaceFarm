@@ -18,6 +18,11 @@ const router = createRouter({
       path: '/star',
       name: 'star',
       component: () => import('../views/StarPreview.vue')
+    },
+    {
+      path: '/playground',
+      name: 'playground',
+      component: () => import('../views/PlaygroundView.vue'),
     }
   ],
 });

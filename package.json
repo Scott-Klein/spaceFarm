@@ -21,7 +21,9 @@
     "@babylonjs/lite": "^1.31.0",
     "@phosphor-icons/vue": "^2.2.1",
     "@tailwindcss/vite": "^4.1.17",
+    "alea": "^1.0.1",
     "pinia": "^3.0.4",
+    "simplex-noise": "^4.0.3",
     "tailwindcss": "^4.1.17",
     "vue": "^3.5.25",
     "vue-router": "^4.6.3"
