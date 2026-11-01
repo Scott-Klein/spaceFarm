@@ -6,7 +6,6 @@ export { default as CameraController } from './systems/CameraController';
 export { default as Controller } from './controllers/Controller';
 export { default as FlightSystem } from './systems/FlightSystem';
 export { default as SceneBuilder } from './core/SceneBuilder';
-export { default as HumanController } from './controllers/HumanController';
 export { default as AIController } from './controllers/AIController';
 export { default as MultiplayerController } from './controllers/MultiplayerController';
 export type { KeyCommand } from './core/InputManager';

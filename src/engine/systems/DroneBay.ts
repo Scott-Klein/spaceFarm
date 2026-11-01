@@ -33,7 +33,7 @@ export default class DroneBay {
     d.orientation = { ...this.owner.orientation };
   
     d.possess(new AIShipController());
-    const key = await $game.addGameObject(d);
+    await $game.addGameObject(d, id);
     this.launched.set(id, d);
     const deleted = this.drones.delete(id);
     if (!deleted) {
