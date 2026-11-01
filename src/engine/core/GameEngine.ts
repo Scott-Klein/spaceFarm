@@ -7,6 +7,7 @@ import LightSystem from '@/engine/systems/LightSystem';
 import { distance } from '@/utils/extensions';
 import Spaceship from '@/engine/objects/ships/Spaceship';
 import ShipController from '@/engine/controllers/ShipController';
+import { setGameEngine } from '@/utils/globals';
 type GameStore = ReturnType<typeof useGameStore>;
 
 // Type for the store update callback
@@ -46,6 +47,7 @@ export default class GameEngine {
     this.setupGameLoop();
 
     this.DELTA_RATE = 1000 / this.TICK_RATE;
+    setGameEngine(this);
   }
 
   private setupGameLoop(): void {
@@ -119,7 +121,9 @@ export default class GameEngine {
       });
     }
 
-    this.gameUi.updateDrones(this.player?.droneBay?.getDrones());
+    if (this.player?.droneBay?.getDrones()) {
+      this.gameUi.updateDrones(this.player.droneBay.getDrones());
+    }
 
     this.gameUi.markers = [];
     for (const [key, x] of this.gameObjects) {
@@ -127,7 +131,13 @@ export default class GameEngine {
       const w2s = this.cameraController.world2Screen(x.position);
       if (w2s.behindCamera) continue;
       const dist = distance(x.position, this.player?.position || vec3(0, 0, 0));
-      this.gameUi.markers.push({ x: w2s.x, y: w2s.y, label: x.getLabel(), distance: dist, key: key });
+      this.gameUi.markers.push({
+        x: w2s.x,
+        y: w2s.y,
+        label: x.getLabel(),
+        distance: dist,
+        key: key,
+      });
     }
   }
 
@@ -150,11 +160,16 @@ export default class GameEngine {
     this.lightSystem.update();
   }
 
-  async addGameObject(gameObject: GameObject, player?: boolean): Promise<string> {
-    const k = await gameObject.create();
+  async addGameObject(gameObject: GameObject, overrideKey?: string): Promise<string> {
+    const k = await gameObject.create(overrideKey);
     this.gameObjects.set(k, gameObject);
 
-    if (player && gameObject instanceof Spaceship) {
+    return k;
+  }
+
+  async addPlayerObject(gameObject: GameObject): Promise<string> {
+    const k = await this.addGameObject(gameObject);
+    if (gameObject instanceof Spaceship) {
       this.player = gameObject;
       this.player.isPlayer = true;
       this.cameraController.setTarget(gameObject);

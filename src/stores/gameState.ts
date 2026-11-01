@@ -42,7 +42,7 @@ const useGameStore = defineStore('game', () => {
   }
 
   /** Snapshot a bay's drones (keyed by engine object key) into UI-friendly state. */
-  const updateDrones = (bayDrones: ReadonlyMap<string, Drone> | undefined) => {
+  const updateDrones = (bayDrones: ReadonlyMap<string, Drone>) => {
     drones.value = [...(bayDrones ?? [])].map(([key, drone]) => toDroneState(key, drone));
   }
 

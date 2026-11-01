@@ -28,8 +28,8 @@ export default class RenderableObject extends GameObject {
     this.logger = useLogStore();
   }
 
-  async create(): Promise<string> {
-    const key = `${this.getLabel()}:${crypto.randomUUID()}`
+  async create(overrideKey? :string): Promise<string> {
+    const key = `${this.getLabel()}:${overrideKey|| crypto.randomUUID()}`
     let container: AssetContainer | null = null;
     let meshes: Mesh[];
     if (this.modelPath) {

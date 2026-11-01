@@ -8,9 +8,9 @@ class Asteroid extends RenderableObject {
 
   }
 
-  async create(): Promise<string> {
+  async create(overrideKey?: string): Promise<string> {
     await super.create();
-    return `${this.getLabel()}:${crypto.randomUUID()}`
+    return `${this.getLabel()}:${overrideKey ||crypto.randomUUID()}`
   }
 
   protected createMeshes(): Mesh[] {

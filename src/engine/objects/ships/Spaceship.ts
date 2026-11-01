@@ -41,10 +41,10 @@ export default class Spaceship extends RenderableObject {
     return 'Spaceship'
   }
 
-  async create(): Promise<string> {
+  async create(overrideKey?: string): Promise<string> {
     await super.create();
     this.createDefaultEngineNodes();
-    return `${this.getLabel()}:${crypto.randomUUID()}`
+    return `${this.getLabel()}:${overrideKey || crypto.randomUUID()}`
   }
 
   // runs inside create() before the meshes are added to the scene

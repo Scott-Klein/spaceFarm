@@ -104,7 +104,7 @@ export default class SceneBuilder {
     const humanController = new HumanShipController(this.gameEngine.getInputManager());
     playerShip.possess(humanController);
     // create() must finish first: light group setup needs the meshes
-    await this.gameEngine.addGameObject(playerShip, true);
+    await this.gameEngine.addPlayerObject(playerShip);
     this.gameEngine.lightSystem.RegisterGroup(playerShip, 'local');
 
     // TODO: temporary, just so the drone window has something to show

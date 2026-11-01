@@ -18,7 +18,7 @@ export default abstract class GameObject {
     this.orientation = { x: 0, y: 0, z: 0, w: 1 }; // identity quaternion, no transforms yet
   }
 
-  abstract create(): Promise<string>;
+  abstract create(override?: string): Promise<string>;
 
   getLabel(): string {
     return this.label;

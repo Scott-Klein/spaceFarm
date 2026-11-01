@@ -5,16 +5,24 @@ import { createBox, type Mesh } from '@babylonjs/lite';
 /** A small ship launched from, and owned by, another ship's DroneBay. */
 export default class Drone extends Spaceship {
   readonly droneType: DroneType;
+  readonly id: string; // cant think of a use for it yet but get ready to get rid of this if i change mind
   health: number;
   cargo = 0;
   private mothership: Spaceship;
 
-  constructor(type: DroneType, mothership: Spaceship) {
+  constructor(type: DroneType, mothership: Spaceship, id: string) {
     const spec = DRONE_SPECS[type];
     super(spec.model, spec.color);
     this.droneType = type;
     this.health = spec.maxHealth;
     this.mothership = mothership;
+    this.id = id;
+  }
+
+  async create(overrideKey?: string): Promise<string> {
+    await super.create();
+
+    return `${this.getLabel()}:${overrideKey || crypto.randomUUID()}`
   }
 
   getLabel() {
