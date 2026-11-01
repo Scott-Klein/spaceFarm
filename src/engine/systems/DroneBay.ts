@@ -1,6 +1,5 @@
 import Drone from '@/engine/objects/ships/Drone';
 import type Spaceship from '@/engine/objects/ships/Spaceship';
-import type { DroneType } from '../objects/ships/registry';
 import AIShipController from '../controllers/AIShipController';
 
 /** Hangar for a ship's drones: owns the list, launches and recalls them. */

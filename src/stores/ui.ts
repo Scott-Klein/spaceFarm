@@ -29,6 +29,8 @@ const useUiStore = defineStore('ui', () => {
     contextMenuOpen.value = false;
   }
 
+  
+
   return {
     contextMenuOpen,
     contextMenuCords,

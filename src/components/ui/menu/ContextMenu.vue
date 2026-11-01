@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="uiStore.contextMenuOpen"
-    class="fixed pointer-events-auto bg-gray-900/90 w-24 text-[9px]"
+    class="fixed pointer-events-auto bg-gray-900/90 w-24 text-[9px] z-10"
     :style="{ left: `${uiStore.contextMenuCords.x}px`, top: `${uiStore.contextMenuCords.y}px` }"
     @pointerdown.stop
   >
